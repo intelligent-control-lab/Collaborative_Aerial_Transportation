@@ -1,0 +1,71 @@
+quad:
+  base:
+    inertia:
+      ixx: 0.007
+      ixy: 0.0
+      ixz: 0.0
+      iyy: 0.007
+      iyz: 0.0
+      izz: 0.012
+    mass: 6.8 
+    relative_height: 0.25
+  rotor:
+    mass: 0.09
+    box:
+      x:  0.1
+      y:  0.015
+      z:  0.003
+    length: 0.17
+  rotor0:
+    origin:
+      x: 0.17
+      y: 0.0
+      z: 0.01
+  rotor1:
+    origin:
+      x: 0.0
+      y: 0.17
+      z: 0.01
+  rotor2:
+    origin:
+      x: -0.17
+      y: 0.0
+      z: 0.01
+  rotor3:
+    origin:
+      x: 0.0
+      y: -0.17
+      z: 0.01
+payload:
+  base:
+    box: 
+      x: 2.0 
+      y: 2.0
+      z: 0.1
+    mass: 0.001
+  holder:
+    mass: 0.001
+    box:
+      x:  0.1
+      y:  0.1
+      z:  0.2
+holder0:
+  origin:
+    x: 0.95
+    y: 0.0
+    z: 0.15
+holder1:
+  origin:
+    x: 0.0
+    y: 0.95
+    z: 0.15
+holder2:
+  origin:
+    x: -0.95
+    y: 0.0
+    z: 0.15
+holder3:
+  origin:
+    x: 0.0
+    y: -0.95
+    z: 0.15

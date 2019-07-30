@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+
+<robot name="hummingbird" xmlns:xacro="http://ros.org/wiki/xacro">
+
+	<!-- <xacro:property name="namespace_quad" value="$(arg namespace_quad)" /> -->
+	  <xacro:property name="name_quad_0" value="hummingbird_0" />
+	  <xacro:property name="name_quad_1" value="hummingbird_1" />
+	  <xacro:property name="name_quad_2" value="hummingbird_2" />
+	  <xacro:property name="name_quad_3" value="hummingbird_3" />
+	  <xacro:property name="name_holder_0" value="holder_0" />
+	  <xacro:property name="name_holder_1" value="holder_1" />
+	  <xacro:property name="name_holder_2" value="holder_2" />
+	  <xacro:property name="name_holder_3" value="holder_3" />
+	  <xacro:property name="rotor_velocity_slowdown_sim" value="10" />
+	  <xacro:property name="use_mesh_file" value="true" />
+	  <xacro:property name="mesh_file" value="package://rotors_description/meshes/hummingbird.dae" />
+	  <xacro:property name="mass" value="0.68" /> <!-- [kg] -->
+	  <xacro:property name="body_width" value="0.1" /> <!-- [m] -->
+	  <xacro:property name="body_height" value="0.12" /> <!-- [m] -->
+	  <xacro:property name="mass_rotor" value="0.009" /> <!-- [kg] -->
+	  <xacro:property name="arm_length" value="0.17" /> <!-- [m] -->
+	  <xacro:property name="rotor_offset_top" value="0.01" /> <!-- [m] -->
+	  <xacro:property name="radius_rotor" value="0.1" /> <!-- [m] -->
+	  <xacro:property name="motor_constant" value="8.54858e-06" /> <!-- [kg m/s^2] -->
+	  <xacro:property name="moment_constant" value="0.016" /> <!-- [m] -->
+	  <xacro:property name="time_constant_up" value="0.0125" /> <!-- [s] -->
+	  <xacro:property name="time_constant_down" value="0.025" /> <!-- [s] -->
+	  <xacro:property name="max_rot_velocity" value="838" /> <!-- [rad/s] -->
+	  <xacro:property name="rotor_drag_coefficient" value="8.06428e-05" />
+	  <xacro:property name="rolling_moment_coefficient" value="0.000001" />
+
+	  <xacro:property name="payload_width" value="2.0" />
+	  <xacro:property name="payload_height" value="0.1" />
+	  <xacro:property name="payload_mass" value="0.01" />
+	  <xacro:property name="payload_name" value="payload" />
+
+	  <xacro:property name="holder_width" value ="0.1" />
+	  <xacro:property name="holder_height" value="0.2" />
+	  <xacro:property name="mass_holder" value="0.1" />
+
+	<xacro:include filename="$(find rotors_description)/urdf/collaborative/component_snippets.xacro" />
+	<xacro:include filename="$(find rotors_description)/urdf/collaborative/hummingbird_payload_offset.xacro"/>
+
+
+  	<xacro:payload_with_holder 
+    	payload_name="${payload_name}" 
+    	mass_payload="${payload_mass}" 
+    	mass_holder="${mass_holder}"
+    	body_width="${payload_width}" 
+    	body_height="${payload_height}"
+    	holder_width="${holder_width}"
+    	holder_height="${holder_height}"
+    	>
+  	</xacro:payload_with_holder>
+
+  	<!--<xacro:default_imu namespace="${name_quad_0}" parent_link="${name_quad_0}/base_link_inertia" />
+  	<xacro:default_imu namespace="${name_quad_1}" parent_link="${name_quad_1}/base_link_inertia" />
+  	<xacro:default_imu namespace="${name_quad_2}" parent_link="${name_quad_2}/base_link_inertia" />
+  	<xacro:default_imu namespace="${name_quad_3}" parent_link="${name_quad_3}/base_link_inertia" />-->
+
+  	<xacro:hummingbird_with_payload_offset
+		namespace_quad="${name_quad_0}"
+		base_link="${payload_name}/base_link"
+		enable_base_link = "false"
+		parent_link_holder = "${name_holder_0}"
+		sphere_joint_name = "sphere_${name_quad_0}_${name_holder_0}"
+		offset_holder = "${holder_height+0.05}"
+		>
+	</xacro:hummingbird_with_payload_offset>
+
+	<xacro:hummingbird_with_payload_offset
+		namespace_quad="${name_quad_1}"
+		base_link="${payload_name}/base_link"
+		parent_link_holder = "${name_holder_1}"
+		sphere_joint_name = "sphere_${name_quad_1}_${name_holder_1}"
+		enable_base_link="false"
+		offset_holder = "${holder_height+0.05}"
+		>
+	</xacro:hummingbird_with_payload_offset>
+
+
+	<xacro:hummingbird_with_payload_offset
+		namespace_quad="${name_quad_2}"
+		base_link="${payload_name}/base_link"
+		parent_link_holder = "${name_holder_2}"
+		sphere_joint_name = "sphere_${name_quad_2}_${name_holder_2}"
+		enable_base_link="false"
+		offset_holder = "${holder_height+0.05}"
+		>
+	</xacro:hummingbird_with_payload_offset>
+
+	<xacro:hummingbird_with_payload_offset
+		namespace_quad="${name_quad_3}"
+		base_link="${payload_name}/base_link"
+		parent_link_holder = "${name_holder_3}"
+		sphere_joint_name = "sphere_${name_quad_3}_${name_holder_3}"
+		enable_base_link="false"
+		offset_holder = "${holder_height+0.05}"
+		>
+	</xacro:hummingbird_with_payload_offset>
+
+	<xacro:if value="$(arg enable_ground_truth)">
+		<xacro:ground_truth_imu_and_odometry namespace="${name_quad_0}" parent_link="${name_quad_0}/base_link_inertia" />
+		<xacro:ground_truth_imu_and_odometry namespace="${name_quad_1}" parent_link="${name_quad_1}/base_link_inertia" />
+		<xacro:ground_truth_imu_and_odometry namespace="${name_quad_2}" parent_link="${name_quad_2}/base_link_inertia" />
+		<xacro:ground_truth_imu_and_odometry namespace="${name_quad_3}" parent_link="${name_quad_3}/base_link_inertia" />
+	</xacro:if>
+	
+</robot>

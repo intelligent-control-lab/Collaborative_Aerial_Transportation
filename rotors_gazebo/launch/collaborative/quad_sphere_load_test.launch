@@ -1,0 +1,9 @@
+<launch>
+    <arg name="world_name" default="basic"/>
+    <arg name="gui" default="true"/>
+    <arg name="verbose" default="false"/>
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find rotors_gazebo)/worlds/quad_sphere_load_test.world"/>
+        <arg name="gui" value="$(arg gui)"/>
+    </include>
+</launch>

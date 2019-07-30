@@ -1,0 +1,6 @@
+<launch>
+
+  <!-- Load RQT with a pre-setup GUI for Baxter controls from a perspective file  -->
+  <node name="collaborative_gui" pkg="rqt_gui" type="rqt_gui" respawn="false"
+	output="screen" args="--perspective-file $(find rotors_gazebo)/rviz_perspectives/single_UAV.perspective"/>
+</launch>

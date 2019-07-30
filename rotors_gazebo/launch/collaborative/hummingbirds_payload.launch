@@ -1,0 +1,18 @@
+<launch>
+    <arg name="mav_name" default="hummingbird"/>
+    <arg name="world_name" default="basic"/>
+    <arg name="gui" default="true"/>
+    <arg name="verbose" default="true"/>
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find rotors_gazebo)/worlds/collaborative/hummingbirds_payload.world"/>
+        <arg name="gui" value="$(arg gui)"/>
+    </include>
+
+    <include file="$(find rotors_gazebo)/launch/collaborative/spawn_quad_sphere_load.launch">
+        <arg name="mav_name" value="$(arg mav_name)"/>
+    </include>
+
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    <node name="rviz" pkg="rviz" type="rviz" />
+</launch>

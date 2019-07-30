@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+  Copyright 2015 Fadri Furrer, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Michael Burri, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Mina Kamel, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Janosch Nikolic, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<robot name="quad_payload_draft" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:property name="namespace" value="$(arg namespace)" />
+  <xacro:property name="namespace_quad" value="$(arg namespace_quad)" />
+  <xacro:property name="payload_width" value="3.0" />
+  <xacro:property name="payload_height" value="0.2" />
+  <xacro:property name="payload_mass" value="1.5" />
+  <xacro:property name="payload_name" value="payload" />
+  <xacro:property name="uav_link_name" value="${namespace_quad}/base_link" />
+
+  <!-- <xacro:include filename="$(find rotors_description)/urdf/collaborative/hummingbird.xacro"/> -->
+  <!-- <xacro:include filename="$(find rotors_description)/urdf/collaborative/two_hummings.xacro"/> -->
+
+  <xacro:include filename="$(find rotors_description)/urdf/collaborative/component_snippets.xacro" />
+  <!-- <xacro:payload_with_holder 
+    payload_name="${payload_name}" 
+    mass_payload="${payload_mass}" 
+    body_width="${payload_width}" 
+    body_height="${payload_height}"
+    uav_link_name="${uav_link_name}">
+  </xacro:payload_with_holder> -->
+</robot>
+
+

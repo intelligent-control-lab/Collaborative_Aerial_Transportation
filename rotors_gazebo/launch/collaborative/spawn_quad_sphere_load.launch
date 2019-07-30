@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<launch>
+  <arg name="mav_name" default="hummingbird"/>
+  <arg name="namespace_quad" default="$(arg mav_name)_payload"/>
+  <arg name="namespace" default="four_quad_payload"/>
+  <arg name="model" default="$(find rotors_description)/urdf/collaborative/four_hummingbirds_payload.xacro"/>
+  <arg name="tf_prefix" default="$(optenv ROS_NAMESPACE)"/>
+  <arg name="enable_ground_truth" default="true"/>
+  <arg name="enable_state_estimator" default="false"/>
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="z" default="0.0"/>
+
+  <!-- send the robot XML to param server -->
+  <param name="robot_description" command="
+    $(find xacro)/xacro.py --inorder '$(arg model)'
+    namespace_quad:=$(arg namespace_quad)
+    enable_ground_truth:=$(arg enable_ground_truth)" 
+    />
+  <param name="tf_prefix" type="string" value="$(arg tf_prefix)" />
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="spawn_$(arg namespace_quad)" pkg="gazebo_ros" type="spawn_model"
+   args="-param robot_description
+         -urdf 
+         -x $(arg x)
+         -y $(arg y)
+         -z $(arg z)
+         -model $(arg namespace)"
+   respawn="false" output="screen">
+  </node>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+</launch>
