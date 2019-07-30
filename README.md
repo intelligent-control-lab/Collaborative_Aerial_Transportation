@@ -83,7 +83,8 @@ A more complete C++ open source version including feasibility verification can a
 **ROS rotors_gazebo environment**
 The UAV-payload model is developped based on the existing work of [ethz-asl/rotors_simulator](https://github.com/ethz-asl/rotors_simulator "ethz-asl/rotors_simulator").
 This simulator is based on the work of the following research paper:
-[3] Furrer, Fadri & Burri, Michael & Achtelik, Markus & Siegwart, Roland. (2016). ** "RotorS – A Modular Gazebo MAV Simulator Framework”  **  
+
+[3] Furrer, Fadri & Burri, Michael & Achtelik, Markus & Siegwart, Roland. (2016). ** "RotorS – A Modular Gazebo MAV Simulator Framework”  **
 ```
 @Inbook{Furrer2016,
 author="Furrer, Fadri
