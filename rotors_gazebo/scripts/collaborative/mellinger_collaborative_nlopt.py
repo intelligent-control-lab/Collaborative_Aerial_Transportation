@@ -7,7 +7,7 @@ class CentrolizedController(object):
     def __init__(self, name='controller'):
         dimension = 3
         self.name = name
-        self.quads = [
+        self.controllers = [
                       Mellinger('hummingbird_0', 0.95, 0.0, 0.35),
                       Mellinger('hummingbird_1', 0.0, 0.95, 0.35),
                       Mellinger('hummingbird_2', -0.95, 0.0, 0.35),
@@ -22,11 +22,22 @@ class CentrolizedController(object):
         self.hover_duration = 0.0
         self.frequency = 50.0
 
+        positions = [[0.0, 0.0, 0.0],
+                     [2.0, 0.0, 2.0],
+                     [4.0, 0.0, 5.0]]
+        velocities = [[0.0, 0.0, 0.0],
+                      [0.0, 0.0, 0.0],
+                      [0.0, 0.0, 0.0]]
+
+        for controller in self.controllers:
+            controller.setVerticesPosVel(positions, velocities)
+
+
         vertices = []
         vertex0 = Vertex(dimension=dimension, index=0)
         start_position = [0.0, 0.0, 0.0]
         start_velocity = [0.0, 0.0, 0.0]
-        for nl_opt in self.quads:
+        for nl_opt in self.controllers:
             nl_opt.NL_planner.construct_constrain(vertex0, order=0, input_list=start_position)
             nl_opt.NL_planner.construct_constrain(vertex0, order=1, input_list=start_velocity)
 
@@ -36,14 +47,14 @@ class CentrolizedController(object):
 
         position = [2.0, 0.0, 2.0]
         velocity = [0.0, 0.0, 0.0]
-        for nl_opt in self.quads:
+        for nl_opt in self.controllers:
             nl_opt.NL_planner.construct_constrain(vertex1, order=0, input_list=position)
             nl_opt.NL_planner.construct_constrain(vertex1, order=1, input_list=velocity)
 
         vertex2 = Vertex(dimension=dimension, index=2)
         position = [4.0, 0.0, 4.0]
         velocity = [0.0, 0.0, 0.0]
-        for nl_opt in self.quads:
+        for nl_opt in self.controllers:
             nl_opt.NL_planner.construct_constrain(vertex2, order=0, input_list=position)
             nl_opt.NL_planner.construct_constrain(vertex2, order=1, input_list=velocity)
 
@@ -53,15 +64,13 @@ class CentrolizedController(object):
         vertices.append(vertex1)
         vertices.append(vertex2)
 
-        times = [3.89891, 3.91507]
-
-        for nl_opt in self.quads:
-            nl_opt.NL_planner.setupFromVertices(vertices, times)
+        for nl_opt in self.controllers:
+            nl_opt.NL_planner.setupFromVertices(vertices)
             nl_opt.NL_planner.add_max_vel(2.0)
             nl_opt.NL_planner.add_max_acc(1.0)
 
-    def hover_and_trj_xy(self, dimension='x'):
-        for nl_opt in self.quads:
+    def hover_and_trj_xy(self, dimension='xyz'):
+        for nl_opt in self.controllers:
             nl_opt.optimize()
             nl_opt.get_planned_pos_vel()
 
@@ -85,7 +94,7 @@ class CentrolizedController(object):
         ROS Loop
         '''
         while not rospy.is_shutdown():
-            for i_mellinger in self.quads:
+            for i_mellinger in self.controllers:
                 if i_mellinger.hover_duration < 5.0:
                     i_mellinger.set_hover_des(target_height=1.5)
                 else:
