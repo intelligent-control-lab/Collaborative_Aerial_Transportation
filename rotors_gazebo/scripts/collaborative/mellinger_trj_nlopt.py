@@ -15,7 +15,7 @@ class Mellinger(Quadrotor):
     Using nonlinear optimizations.
     """
 
-    def __init__(self, mav_name, x, y, z, dimension=3):
+    def __init__(self, mav_name, x, y, z, dimension=3, N=10):
         Quadrotor.__init__(self, mav_name)
 
         self.k_T = 6.7
@@ -34,8 +34,8 @@ class Mellinger(Quadrotor):
         k_pz = 47.0
         k_vxy = 60.7
         k_vz = 60.7
-        k_omega = 30.5
-        k_R = 193.5
+        k_omega = 25.5
+        k_R = 100.5
 
         self.k_pI = 2.0
         self.K_p = np.eye(3)
@@ -59,7 +59,7 @@ class Mellinger(Quadrotor):
 
         # Polynomial trajectory planner
         self.isPolynomialSolved = False
-        self.NL_planner = PolynomialOptNonlinear(N=10, dimension=dimension)
+        self.NL_planner = PolynomialOptNonlinear(N=N, dimension=dimension)
 
         self.trj_xyz = np.zeros((3, 1))
         self.trj_v = np.zeros((3, 1))
@@ -113,24 +113,25 @@ class Mellinger(Quadrotor):
         self.NL_planner.init_offset(self.positions_quads.T)
         self.offset_added = True
 
-    def init_offset(self, offset):
-        self.NL_planner.init_offset(offset)
-
     def update_omega_err(self):
         self.e_omegas = self.angular_vel_quads - np.dot(
             np.dot(self.R_.T, self.desired_R_), self.desired_omegas)
         # self.e_omegas = self.angular_vel_quads - self.desired_omegas
+        pub_vec3 = Vector3Stamped()
+        pub_vec3.header.stamp = rospy.Time.now()
+        pub_vec3.vector = Vector3(self.e_omegas[0, 0], self.e_omegas[1, 0], self.e_omegas[2, 0])
+        self.publisher_err_omegas.publish(pub_vec3)
 
     def update_R_err(self):
         e_R = np.dot(self.desired_R_.transpose(), self.R_) - \
                              np.dot(self.R_.transpose(), self.desired_R_)
         self.e_R_ = vee(e_R) / 2.0
 
-        vec3_e_R = Vector3Stamped()
-        vec3_e_R.header.stamp = rospy.Time.now()
+        vec3_euler_des = Vector3Stamped()
+        vec3_euler_des.header.stamp = rospy.Time.now()
         euler_des = rotationMatrixToEulerAngles(self.desired_R_)
-        vec3_e_R.vector = Vector3(euler_des[0], euler_des[1], euler_des[2])
-        self.publisher_euler_des.publish(vec3_e_R)
+        vec3_euler_des.vector = Vector3(euler_des[0], euler_des[1], euler_des[2])
+        self.publisher_euler_des.publish(vec3_euler_des)
 
         vec3_e_R = Vector3Stamped()
         vec3_e_R.header.stamp = rospy.Time.now()
@@ -142,36 +143,10 @@ class Mellinger(Quadrotor):
         pub_vec3.vector = Vector3(self.euler_quads[0, 0], self.euler_quads[1, 0], self.euler_quads[2, 0])
         self.publisher_eulers.publish(pub_vec3)
 
-        pub_vec3 = Vector3Stamped()
-        pub_vec3.header.stamp = rospy.Time.now()
-        pub_vec3.vector = Vector3(self.e_R_[0, 0], self.e_R_[1, 0], self.e_R_[2, 0])
-        self.publisher_err_angles.publish(pub_vec3)
-
-    def update_M(self):
-        self.update_omega_err()
-        self.update_R_err()
-        angular_acc_tmp = \
-            np.dot(
-                np.dot(
-                    np.dot(
-                        skewsymetric(self.angular_vel_quads), self.R_.T
-                    )
-                , self.desired_R_
-                )
-            , self.desired_omegas
-            )
-
-        angular_acc_tmp = angular_acc_tmp - \
-            np.dot(
-                np.dot(
-                    self.R_.T, self.desired_R_
-                )
-            , self.desired_angular_acc
-            )
-
-        self.u[1:4] = - np.multiply(self.K_R, self.e_R_) - np.multiply(self.K_omega, self.e_omegas)\
-                      + np.cross(self.angular_vel_quads.T, np.dot(self.J, self.angular_vel_quads).T).T\
-                      - np.dot(self.J, angular_acc_tmp)
+        # pub_vec3 = Vector3Stamped()
+        # pub_vec3.header.stamp = rospy.Time.now()
+        # pub_vec3.vector = Vector3(self.e_R_[0, 0], self.e_R_[1, 0], self.e_R_[2, 0])
+        # self.publisher_err_angles.publish(pub_vec3)
 
     def set_hover_des(self, target_height):
         if not self.isHovering:
@@ -225,7 +200,6 @@ class Mellinger(Quadrotor):
 
     def getPlanUpToSnap(self, frequency):
         self.NL_planner.linear_opt.get_d_trajectory(order=0, sample_frequency=frequency)
-        self.init_offset(self.inital_position.T)
         self.NL_planner.linear_opt.get_d_trajectory(order=1, sample_frequency=frequency)
         self.NL_planner.linear_opt.get_d_trajectory(order=2, sample_frequency=frequency)
         self.NL_planner.linear_opt.get_d_trajectory(order=3, sample_frequency=frequency)
@@ -245,6 +219,11 @@ class Mellinger(Quadrotor):
         self.y_B = np.cross(self.z_B, self.x_C) / np.linalg.norm(np.cross(self.z_B, self.x_C))
         self.x_B = np.cross(self.y_B, self.z_B)
 
+    def update_desired_inputs(self):
+        self.update_desired_F()
+        self.update_desired_values()
+        self.update_desired_M()
+
     def update_desired_F(self):
         self.update_pos_err()
         self.update_vel_err()
@@ -255,7 +234,6 @@ class Mellinger(Quadrotor):
 
     def update_desired_values(self):
         # desired values
-        self.update_desired_F()
         self.u[0, 0] = np.dot(self.z_B, self.desired_F)
 
         float_u = Float64()
@@ -302,20 +280,40 @@ class Mellinger(Quadrotor):
         self.desired_angular_acc[1, 0] = np.dot(self.x_B_des, h_angular_acc)
         self.desired_angular_acc[2, 0] = np.dot(self.z_B_des, np.array([[0.0], [0.0], [self.desired_dd_yaw]]))
 
-        self.update_M()
-
-        float_u.data = self.u[1, 0] / 10.0  # for better visualization
-        self.pub_desired_u2.publish(float_u)
-        float_u.data = self.u[2, 0] / 10.0  # for better visualization
-        self.pub_desired_u3.publish(float_u)
-
         vec3_omega_des = Vector3Stamped()
         vec3_omega_des.header.stamp = rospy.Time.now()
         vec3_omega_des.vector = Vector3(self.desired_omegas[0, 0], self.desired_omegas[1, 0],
                                         self.desired_omegas[2, 0])
         self.pub_desired_omegas.publish(vec3_omega_des)
 
+    def update_desired_M(self):
+        self.update_omega_err()
+        self.update_R_err()
+        angular_acc_tmp = \
+            np.dot(
+                np.dot(
+                    np.dot(
+                        skewsymetric(self.angular_vel_quads), self.R_.T
+                    )
+                , self.desired_R_
+                )
+            , self.desired_omegas
+            )
+
+        angular_acc_tmp = angular_acc_tmp - \
+            np.dot(
+                np.dot(
+                    self.R_.T, self.desired_R_
+                )
+            , self.desired_angular_acc
+            )
+
+        self.u[1:4] = - np.multiply(self.K_R, self.e_R_) - np.multiply(self.K_omega, self.e_omegas)\
+                      + np.cross(self.angular_vel_quads.T, np.dot(self.J, self.angular_vel_quads).T).T\
+                      - np.dot(self.J, angular_acc_tmp)
+
     def motorSpeedFromU(self):
+        aa = self.u
         self.motor_speed = np.dot(self.M_UtoMotor, self.u)
 
     def multiply_motor_speed(self, k):
@@ -443,7 +441,7 @@ class Mellinger(Quadrotor):
             self.set_hover_des(target_height)
             self.publish_err()
             self.update_current_state()
-            self.update_desired_values()
+            self.update_desired_inputs()
             self.motorSpeedFromU()
             self.send_motor_command()
             self.rate.sleep()
@@ -451,13 +449,6 @@ class Mellinger(Quadrotor):
     def run(self):
         self.optimize()
         self.getPlanUpToSnap(frequency=50)
-
-        # self.NL_planner.linear_opt.plot_derivatives(order=0)
-        # self.NL_planner.linear_opt.plot_derivatives(order=1)
-        # self.NL_planner.linear_opt.plot_derivatives(order=2)
-        # self.NL_planner.linear_opt.plot_derivatives(order=3)
-        # self.NL_planner.linear_opt.plot_derivatives(order=4)
-
         self.load_trj_lists()
 
         rospy.init_node(self.name, anonymous=True)
@@ -471,15 +462,10 @@ class Mellinger(Quadrotor):
             self.publish_poly3d_trj()
             self.publish_err()
             self.update_current_state()
-            self.update_desired_values()
+            self.update_desired_inputs()
             self.motorSpeedFromU()
             self.send_motor_command()
             self.rate.sleep()
-
-    # def calculatePosVelAcc(self):
-    #     self.NL_planner.linear_opt.get_d_trajectory(order=0, sample_frequency=50)
-    #     self.NL_planner.linear_opt.get_d_trajectory(order=1, sample_frequency=50)
-    #     self.NL_planner.linear_opt.get_d_trajectory(order=2, sample_frequency=50)
 
     def hover_and_trj_xy(self, dimension='x'):
         self.optimize()
@@ -517,7 +503,7 @@ class Mellinger(Quadrotor):
                 self.publish_poly3d_trj()
             self.publish_err()
             self.update_current_state()
-            self.update_desired_values()
+            self.update_desired_inputs()
             self.motorSpeedFromU()
             self.send_motor_command()
             self.rate.sleep()
@@ -525,39 +511,18 @@ class Mellinger(Quadrotor):
 
 if __name__ == '__main__':
     dimension = 3
-    mellinger_nl = Mellinger('hummingbird', 0.0, 0.0, 0.0)
-    vertices = []
-    vertex0 = Vertex(dimension=dimension, index=0)
-    start_position = [0.0, 0.0, 0.0]
-    start_velocity = [0.0, 0.0, 0.0]
-    mellinger_nl.NL_planner.construct_constrain(vertex0, order=0, input_list=start_position)
-    mellinger_nl.NL_planner.construct_constrain(vertex0, order=1, input_list=start_velocity)
+    mellinger_nl = Mellinger('hummingbird', 0.0, 0.0, 0.0, dimension=dimension, N=10)
 
-    vertex0.makeStartOrEnd(position=start_position, up_to_order=4)
-
-    vertex1 = Vertex(dimension=dimension, index=1)
-
-    position = [2.0, 0.0, 2.0]
-    velocity = [0.0, 0.0, 0.0]
-    mellinger_nl.NL_planner.construct_constrain(vertex1, order=0, input_list=position)
-    mellinger_nl.NL_planner.construct_constrain(vertex1, order=1, input_list=velocity)
-
-    vertex2 = Vertex(dimension=dimension, index=2)
-    position = [4.0, 0.0, 4.0]
-    velocity = [0.0, 0.0, 0.0]
-    mellinger_nl.NL_planner.construct_constrain(vertex2, order=0, input_list=position)
-    mellinger_nl.NL_planner.construct_constrain(vertex2, order=1, input_list=velocity)
-
-    vertex2.makeStartOrEnd(position=position, up_to_order=4)
-
-    vertices.append(vertex0)
-    vertices.append(vertex1)
-    vertices.append(vertex2)
-    times = [3.89891, 3.91507]
-    mellinger_nl.NL_planner.setupFromVertices(vertices)
-    mellinger_nl.NL_planner.add_max_vel(2.0)
-    mellinger_nl.NL_planner.add_max_acc(1.0)
-
+    mellinger_nl.NL_planner.setVerticesPosVel(
+                               positions=[
+                                        [0.0, 0.0, 0.0],
+                                        [2.0, 0.0, 2.0],
+                                        [4.0, 0.0, 5.0]
+                               ], velocities=[
+                                 [0.0, 0.0, 0.0],
+                                 [0.0, 0.0, 0.0],
+                                 [0.0, 0.0, 0.0]
+                                  ])
     mellinger_nl.hover_and_trj_xy()
 
 

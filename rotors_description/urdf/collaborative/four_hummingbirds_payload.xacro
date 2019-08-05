@@ -31,7 +31,7 @@
 
 	  <xacro:property name="payload_width" value="2.0" />
 	  <xacro:property name="payload_height" value="0.1" />
-	  <xacro:property name="payload_mass" value="0.01" />
+	  <xacro:property name="payload_mass" value="1.0" />
 	  <xacro:property name="payload_name" value="payload" />
 
 	  <xacro:property name="holder_width" value ="0.1" />

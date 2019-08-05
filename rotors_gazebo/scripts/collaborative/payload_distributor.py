@@ -16,7 +16,7 @@ class PayloadDistributor(object):
         self.mass_quad = 0.0
         self.num_agents = 4
         self.relative_pos = np.zeros((3, self.num_agents))
-        self.c = np.ones((1, self.num_agents)) / self.num_agents
+        self.c = np.ones((self.num_agents, 1)) / self.num_agents
         self.Sigma = np.zeros((3, 3))
         self.E_ = [np.zeros((6, 6)) for _ in range(self.num_agents)]
         self.E_inv = [np.zeros((6, 6)) for _ in range(self.num_agents)]
@@ -28,7 +28,7 @@ class PayloadDistributor(object):
         self.pre_processing()
         self.H0_[0:3, 0:3] = self.mass_payload * np.eye(3)
         self.H0_[3:, 3:] = self.J_payload
-        self.G0_[2, 0] = -self.g
+        self.G0_[2, 0] = self.g
         self.calculateMatrixE()
         self.planner = PolynomialOptNonlinear(N=10, dimension=3)
 
@@ -51,6 +51,7 @@ class PayloadDistributor(object):
                                             yaml_data['payload']['holder']['box']['y'],
                                             yaml_data['payload']['holder']['box']['z'],
                                             yaml_data['payload']['holder']['mass'])
+
                 J_holders_O = \
                     [
                         deplacement_moment_inertia(
@@ -70,7 +71,9 @@ class PayloadDistributor(object):
                              -yaml_data['holder3']['origin']['y'],
                              -yaml_data['holder3']['origin']['z']], J_holder_G, yaml_data['payload']['holder']['mass']),
                     ]
-
+                self.mass_payload = yaml_data['payload']['base']['mass']
+                mass_holder = yaml_data['payload']['holder']['mass']
+                self.mass_payload = self.mass_payload + self.num_agents * mass_holder
                 self.J_payload = J_base_P
                 for j in range(self.num_agents):
                     self.J_payload = self.J_payload + J_holders_O[j]
@@ -111,7 +114,7 @@ class PayloadDistributor(object):
         sum = np.zeros((3, 3))
         for i in range(self.num_agents):
             S_ri = skewsymetric(self.relative_pos[i])
-            sum = sum + np.multiply(self.c[0, i], np.dot(S_ri, S_ri.T))
+            sum = sum + np.multiply(self.c[i, 0], np.dot(S_ri, S_ri.T))
         self.Sigma = np.eye(3) + sum
 
     def calculateMatrixE(self):
@@ -128,11 +131,16 @@ class PayloadDistributor(object):
             self.E_inv[i][0:3, 3:] = -np.dot(skewsymetric(self.relative_pos[i]),
                                           np.linalg.inv(self.Sigma))
             self.E_inv[i][3:, 3:] = np.linalg.inv(self.Sigma)
-            self.c_E[i] = self.c[0, i] * self.E_inv[i]
+            self.c_E[i] = self.c[i, 0] * self.E_inv[i]
 
     def updateM0W0(self):
         for i in range(self.num_agents):
-            self.M0_[i][:, :] = np.dot(np.dot(self.E_inv[i], self.H0_), np.linalg.inv(self.E_[i].T))
+            self.M0_[i][:, :] = np.dot(
+                np.dot(
+                    self.E_inv[i], self.H0_
+                )
+                , np.linalg.inv(self.E_[i].T)
+            )
             self.W0_[i] = np.dot(self.E_inv[i], self.G0_)
 
     def show_distribution(self):
@@ -141,11 +149,14 @@ class PayloadDistributor(object):
             print "M0: ", self.M0_
             print "W0: ", self.W0_
 
-    def getM0(self):
-        return self.M0_
+    def getM0(self, index=0):
+        return self.M0_[index]
 
-    def getW0(self):
-        return self.W0_
+    def getW0(self, index=0):
+        return self.W0_[index]
+
+    def get_c(self, index=0):
+        return self.c[index, 0]
 
     def setVerticesPosVel(self, positions, velocities):
         self.planner.setVerticesPosVel(positions, velocities)

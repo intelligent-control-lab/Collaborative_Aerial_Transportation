@@ -99,7 +99,7 @@ class Quadrotor(object):
         # publisher of commands and errs
         topic_name_err_pos = '/' + self.name + '/controller/pos_err'
         topic_name_err_vel = '/' + self.name + '/controller/vel_err'
-        topic_name_err_angles = '/' + self.name + '/controller/euler_err'
+        # topic_name_err_angles = '/' + self.name + '/controller/euler_err'
         topic_name_err_omegas = '/' + self.name + '/controller/omega_err'
         topic_name_err_R = '/' + self.name + '/controller/e_R'
         topic_name_euler_des = '/' + self.name + '/controller/euler_des'
@@ -111,45 +111,49 @@ class Quadrotor(object):
         topic_name_snap_des = '/' + self.name + '/commander/ref_snap'
         topic_name_actuators = '/' + self.name + '/gazebo/command/motor_speed'
 
-        self.publisher_err_pos = rospy.Publisher(topic_name_err_pos, Vector3Stamped, queue_size=10)
+        self.publisher_err_pos = rospy.Publisher(topic_name_err_pos, Vector3Stamped, queue_size=2)
 
-        self.publisher_err_vel = rospy.Publisher(topic_name_err_vel, Vector3Stamped, queue_size=10)
-        self.publisher_err_angles = rospy.Publisher(topic_name_err_angles, Vector3Stamped, queue_size=10)
-        self.publisher_err_omegas = rospy.Publisher(topic_name_err_omegas, Vector3Stamped, queue_size=10)
-        self.publisher_err_R = rospy.Publisher(topic_name_err_R, Vector3Stamped, queue_size=10)
+        self.publisher_err_vel = rospy.Publisher(topic_name_err_vel, Vector3Stamped, queue_size=2)
+        # self.publisher_err_angles = rospy.Publisher(topic_name_err_angles, Vector3Stamped, queue_size=2)
+        self.publisher_err_omegas = rospy.Publisher(topic_name_err_omegas, Vector3Stamped, queue_size=2)
+        self.publisher_err_R = rospy.Publisher(topic_name_err_R, Vector3Stamped, queue_size=2)
         self.publisher_euler_des = rospy.Publisher(topic_name_euler_des, Vector3Stamped, queue_size=10)
-        self.publisher_eulers = rospy.Publisher(topic_name_eulers, Vector3Stamped, queue_size=10)
-        self.pub_desired_pos = rospy.Publisher(topic_name_pos_des, Vector3Stamped, queue_size=10)
-        self.pub_desired_vel = rospy.Publisher(topic_name_vel_des, Vector3Stamped, queue_size=10)
-        self.pub_desired_acc = rospy.Publisher(topic_name_acc_des, Vector3Stamped, queue_size=10)
-        self.pub_desired_jerk = rospy.Publisher(topic_name_jerk_des, Vector3Stamped, queue_size=10)
-        self.pub_desired_snap = rospy.Publisher(topic_name_snap_des, Vector3Stamped, queue_size=10)
+        self.publisher_eulers = rospy.Publisher(topic_name_eulers, Vector3Stamped, queue_size=2)
+        self.pub_desired_pos = rospy.Publisher(topic_name_pos_des, Vector3Stamped, queue_size=2)
+        self.pub_desired_vel = rospy.Publisher(topic_name_vel_des, Vector3Stamped, queue_size=2)
+        self.pub_desired_acc = rospy.Publisher(topic_name_acc_des, Vector3Stamped, queue_size=2)
+        self.pub_desired_jerk = rospy.Publisher(topic_name_jerk_des, Vector3Stamped, queue_size=2)
+        self.pub_desired_snap = rospy.Publisher(topic_name_snap_des, Vector3Stamped, queue_size=2)
 
-        self.pub_actuator = rospy.Publisher(topic_name_actuators, Actuators, queue_size=10)
+        self.pub_actuator = rospy.Publisher(topic_name_actuators, Actuators, queue_size=2)
 
         # subscribers from the planner side
-        self.sub_poly_trj = rospy.Subscriber('trajectory', PolynomialTrajectory4D, self.cb_trajectory)
+        # self.sub_poly_trj = rospy.Subscriber('trajectory', PolynomialTrajectory4D, self.cb_trajectory)
         self.trj_poly_coeffs_x = []
         self.trj_poly_coeffs_y = []
         self.trj_poly_coeffs_z = []
 
-        # controller
-        k_pxy = 28.0
-        k_pz = 28.0
+        # controller parameters for controlling a single robot
+        k_pxy = 47.0
+        k_pz = 47.0
+        k_vxy = 60.7
+        k_vz = 60.7
+        k_omega = 30.5
+        k_R = 193.5
+
         self.k_pI = 2.0
         self.K_p = np.eye(3)
         self.K_p[0, 0] = k_pxy
         self.K_p[1, 1] = k_pxy
         self.K_p[2, 2] = k_pz
-        k_vxy = 12.7
-        k_vz = 12.7
+
         self.k_vI = 2.0
         self.K_v = np.eye(3)
         self.K_v[0, 0] = k_vxy
         self.K_v[1, 1] = k_vxy
         self.K_v[2, 2] = k_vz
-        self.K_omega = 22.5
-        self.K_R = 40.5
+        self.K_omega = k_omega
+        self.K_R = k_R
 
         # publisher for debug:
         topic_name_motor_speed_des = '/' + self.name + '/motor_speed0_des'
@@ -159,12 +163,12 @@ class Quadrotor(object):
         topic_name_omega_des = '/' + self.name + '/des_omega'
         topic_name_actual_acc = '/' + self.name + '/controller/actual_acc'
 
-        self.pub_motor_speed_des = rospy.Publisher(topic_name_motor_speed_des, Float64, queue_size=10)
-        self.pub_desired_u1 = rospy.Publisher(topic_name_u1_des, Float64, queue_size=10)
-        self.pub_desired_u2 = rospy.Publisher(topic_name_u2_des, Float64, queue_size=10)
-        self.pub_desired_u3 = rospy.Publisher(topic_name_u3_des, Float64, queue_size=10)
-        self.pub_desired_omegas = rospy.Publisher(topic_name_omega_des, Vector3Stamped, queue_size=10)
-        self.pub_actual_acc = rospy.Publisher(topic_name_actual_acc, Vector3Stamped, queue_size=10)
+        self.pub_motor_speed_des = rospy.Publisher(topic_name_motor_speed_des, Float64, queue_size=2)
+        self.pub_desired_u1 = rospy.Publisher(topic_name_u1_des, Float64, queue_size=2)
+        self.pub_desired_u2 = rospy.Publisher(topic_name_u2_des, Float64, queue_size=2)
+        self.pub_desired_u3 = rospy.Publisher(topic_name_u3_des, Float64, queue_size=2)
+        self.pub_desired_omegas = rospy.Publisher(topic_name_omega_des, Vector3Stamped, queue_size=2)
+        self.pub_actual_acc = rospy.Publisher(topic_name_actual_acc, Vector3Stamped, queue_size=2)
 
         # commander of motor speed
         self.motor_speed = np.zeros((4, 1))

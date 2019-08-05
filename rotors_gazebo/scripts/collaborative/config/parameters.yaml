@@ -42,9 +42,9 @@ payload:
       x: 2.0 
       y: 2.0
       z: 0.1
-    mass: 0.001
+    mass: 1.0
   holder:
-    mass: 0.001
+    mass: 1.0
     box:
       x:  0.1
       y:  0.1
