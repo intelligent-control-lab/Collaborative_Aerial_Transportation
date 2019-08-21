@@ -52,7 +52,6 @@ python mellinger_trj_nlopt.py
 **Position controller for UAV: Mellinger controller.**
 This controller is based on the work of D.Mellinger and V.Kumar, and should be cited if this content is used in a scientific publication (or the preceding conference papers):
 [1] D. Mellinger and V. Kumar,**b"Minimum snap trajectory generation and control for quadrotors" **, 2011 IEEE International Conference on Robotics and Automation, Shanghai, 2011, pp. 2520-2525.
-
 ```
 @INPROCEEDINGS{5980409,
 author={D. {Mellinger} and V. {Kumar}},
@@ -64,7 +63,6 @@ doi={10.1109/ICRA.2011.5980409},
 ISSN={1050-4729},
 month={May},}
 ```
-
 **Minimum snap polynomial trajectory generation**
 The trajectory generation part is a python version of the implementation of the reaserch paper:
 [2] C. Richter, A. Bry, and N. Roy, **“Polynomial trajectory planning for aggressive quadrotor flight in dense indoor environments,”** in International Journal of Robotics Research, Springer, 2016.
