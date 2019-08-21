@@ -31,7 +31,7 @@ source devel/setup.bash
 **Collaborative transportation example**
 Here is an example of the centralized collaborative payload transportation task. Four UAVs are physically connected to a box payload via spherical joints. During the example the system expeirence two phases, the hovering and the trajectory following. After steadily hovering, the planner generates a high-order polynomial trajectory that the four UAVs follows simultaneously. Force-torque sensors are attached to the joints between UAVs and the payload. More complecated strategies can be developped based on the current framework.
 
-![collaborative transportation](https://raw.githubusercontent.com/lucasyu17/collaborative_rotorS/master/rotors_gazebo/images/collaborative_transportation.png "collaborative transportation")
+![collaborative transportation](https://github.com/intelligent-control-lab/Collaborative_Aerial_Transportation/blob/master/rotors_gazebo/images/collaborative_transportation.png "collaborative transportation")
 
 ```
 roslaunch rotors_gazebo collaborative_hovering.launch
