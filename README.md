@@ -35,7 +35,7 @@ Here is an example of the centralized collaborative payload transportation task.
 
 ```
 roslaunch rotors_gazebo collaborative_hovering.launch
-cd src/collaborative_rotorS/rotors_gazebo/scripts/collaborative
+cd src/Collaborative_Aerial_Transportation/rotors_gazebo/scripts/collaborative
 python mellinger_collaborative_nlopt.py
 ```
 
@@ -44,7 +44,7 @@ Here is the example of controlling a single UAV to hover and follow a referenced
 
 ```
 roslaunch rotors_gazebo mellinger_hummingbird.launch
-cd src/collaborative_rotorS/rotors_gazebo/scripts/collaborative
+cd src/Collaborative_Aerial_Transportation/rotors_gazebo/scripts/collaborative
 python mellinger_trj_nlopt.py
 ```
 
