@@ -36,7 +36,7 @@
 
 	  <xacro:property name="holder_width" value ="0.1" />
 	  <xacro:property name="holder_height" value="0.2" />
-	  <xacro:property name="mass_holder" value="0.1" />
+	  <xacro:property name="mass_holder" value="1.0" />
 
 	<xacro:include filename="$(find rotors_description)/urdf/collaborative/component_snippets.xacro" />
 	<xacro:include filename="$(find rotors_description)/urdf/collaborative/hummingbird_payload_offset.xacro"/>
