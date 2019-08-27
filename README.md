@@ -23,6 +23,7 @@ $ catkin_init_workspace  # initialize your catkin workspace
 3. clone the project into the src directory of your workspace:
 ```bash
 git clone https://github.com/intelligent-control-lab/Collaborative_Aerial_Transportation.git
+cd ..
 catkin_make
 source devel/setup.bash
 ```
@@ -36,7 +37,7 @@ Here is an example of the centralized collaborative payload transportation task.
 ```
 roslaunch rotors_gazebo collaborative_hovering.launch
 cd src/Collaborative_Aerial_Transportation/rotors_gazebo/scripts/collaborative
-python mellinger_collaborative_nlopt.py
+python mellinger_collaborative_nlopt.py 
 ```
 
 **Single UAV control example**
