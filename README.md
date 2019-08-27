@@ -22,7 +22,7 @@ $ catkin_init_workspace  # initialize your catkin workspace
 ```
 3. clone the project into the src directory of your workspace:
 ```bash
-git clone https://github.com/intelligent-control-lab/collaborative-aerial-transportation.git
+git clone https://github.com/intelligent-control-lab/Collaborative_Aerial_Transportation.git
 catkin_make
 source devel/setup.bash
 ```
