@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e472c96f-952e-45f1-aa8c-5ab3fa923c3e" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../matlab_code/CollaborativeController_RST/main.m" beforeDir="false" afterPath="$PROJECT_DIR$/../matlab_code/CollaborativeController_RST/main.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_description/urdf/collaborative/component_snippets.xacro" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_description/urdf/collaborative/component_snippets.xacro" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_description/urdf/collaborative/four_hummingbirds_payload.xacro" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_description/urdf/collaborative/four_hummingbirds_payload.xacro" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_description/urdf/collaborative/hummingbird.xacro" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_description/urdf/collaborative/hummingbird.xacro" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_description/urdf/collaborative/hummingbird_base.xacro" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_description/urdf/collaborative/hummingbird_base.xacro" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_description/urdf/collaborative/multirotor_base.xacro" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_description/urdf/collaborative/multirotor_base.xacro" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo/scripts/collaborative/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo/scripts/collaborative/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo/scripts/collaborative/mellinger.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo/scripts/collaborative/mellinger.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/liftdrag_plugin/liftdrag_plugin.h.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/liftdrag_plugin/liftdrag_plugin.h.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/external/gazebo_gimbal_controller_plugin.h" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/external/gazebo_gimbal_controller_plugin.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/external/gazebo_gimbal_controller_plugin.h.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/external/gazebo_gimbal_controller_plugin.h.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_fw_dynamics_plugin.h.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_fw_dynamics_plugin.h.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_imu_plugin.h.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_imu_plugin.h.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_magnetometer_plugin.h.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_magnetometer_plugin.h.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_mavlink_interface.h.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_mavlink_interface.h.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_motor_model.h.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_motor_model.h.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_octomap_plugin.h.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_octomap_plugin.h.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_wind_plugin.h.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/gazebo_wind_plugin.h.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/sdf_api_wrapper.hpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/include/rotors_gazebo_plugins/sdf_api_wrapper.hpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_geotagged_images_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_geotagged_images_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_gimbal_controller_plugin.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_gimbal_controller_plugin.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_gimbal_controller_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_gimbal_controller_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_gst_camera_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_gst_camera_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_lidar_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_lidar_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_optical_flow_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/external/gazebo_optical_flow_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_bag_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_bag_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_controller_interface.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_controller_interface.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_fw_dynamics_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_fw_dynamics_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_gps_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_gps_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_imu_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_imu_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_magnetometer_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_magnetometer_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_mavlink_interface.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_mavlink_interface.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_motor_model.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_motor_model.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_multirotor_base_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_multirotor_base_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_noisydepth_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_noisydepth_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_octomap_plugin.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_octomap_plugin.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_octomap_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_octomap_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_odometry_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_odometry_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_pressure_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_pressure_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_wind_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/gazebo_wind_plugin.cpp.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/liftdrag_plugin/liftdrag_plugin.cpp.bak" beforeDir="false" afterPath="$PROJECT_DIR$/../rotors_gazebo_plugins/src/liftdrag_plugin/liftdrag_plugin.cpp.bak" afterDir="false" />
+    </list>
+    <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/include/rotors_control/common.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="373">
+              <caret line="85" column="68" lean-forward="true" selection-start-line="85" selection-start-column="68" selection-end-line="85" selection-end-column="68" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>calculateAllocationMatrix</find>
+      <find>rotor.angle</find>
+      <find>rotor_configuration_string</find>
+    </findStrings>
+    <dirStrings>
+      <dir>$PROJECT_DIR$</dir>
+    </dirStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="652" />
+    <option name="y" value="30" />
+    <option name="width" value="924" />
+    <option name="height" value="1048" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="rotors_control" type="b2602c69:ProjectViewProjectNode" />
+              <item name="rotors_control" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e472c96f-952e-45f1-aa8c-5ab3fa923c3e" name="Default Changelist" comment="" />
+      <created>1563461995646</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1563461995646</updated>
+      <workItem from="1563461999538" duration="3202000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="3202000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="64" y="-11" width="2497" height="1452" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Favorites" side_tool="true" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16292365" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="Database Changes" />
+      <window_info anchor="bottom" id="Version Control" />
+      <window_info anchor="bottom" id="Terminal" />
+      <window_info anchor="bottom" id="Event Log" side_tool="true" />
+      <window_info anchor="bottom" id="CMake" visible="true" weight="0.32953683" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="right" id="Database" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/include/rotors_control/common.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="373">
+          <caret line="85" column="68" lean-forward="true" selection-start-line="85" selection-start-column="68" selection-end-line="85" selection-end-column="68" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
