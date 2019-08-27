@@ -73,6 +73,9 @@ class Segment(object):
     def get_endTime(self):
         return self.Time
 
+    def set_segment_time(self, time):
+        self.Time = time
+
     def get_Q(self):
         return self.Q
 

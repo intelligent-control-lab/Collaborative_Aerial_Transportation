@@ -4,19 +4,17 @@ import rospy
 from mav_msgs.msg import Actuators
 from std_msgs.msg import Float64
 from geometry_msgs.msg import Vector3Stamped, Vector3
-import math
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu
 import yaml
-from mav_planning_msgs.msg import PolynomialTrajectory4D
 from basic_functions import *
 
 
 class Quadrotor(object):
     """Quadrotor model in ROS"""
-    def __init__(self, mav_name):
+    def __init__(self, mav_name, index):
         super(Quadrotor, self).__init__()
-        self.name = mav_name
+        self.name = mav_name + '_' + str(index)
         self.g = 9.81
         self.k_L = 1.2e-4
         self.k_M = 0.5
@@ -189,7 +187,8 @@ class Quadrotor(object):
         self.desired_positions[2, 0] = z
 
     def pre_processing(self):
-        with open('config/parameters.yaml', 'r') as stream:
+        with open('/home/lucasyu/gazebo_learning_ws/src/collaborative_transportation'
+                  '/rotors_gazebo/scripts/collaborative/config/parameters.yaml', 'r') as stream:
             try:
                 yaml_data = yaml.safe_load(stream)
                 self.L = yaml_data['quad']['rotor']['length']
@@ -226,7 +225,6 @@ class Quadrotor(object):
             except yaml.YAMLError as exc:
                 print(exc)
 
-    # callback
     def cb_quad_odom(self, data):
 
         self.euler_quads = np.array(quaternion2euler(data)).reshape((3, 1))

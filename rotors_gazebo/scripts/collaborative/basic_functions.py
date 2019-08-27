@@ -90,7 +90,6 @@ def isRotationMatrix(R):
 
 # Calculates rotation matrix to euler angles
 def rotationMatrixToEulerAngles(R):
-
     assert (isRotationMatrix(R))
 
     sy = math.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])

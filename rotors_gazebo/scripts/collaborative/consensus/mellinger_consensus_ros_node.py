@@ -1,17 +1,24 @@
-from mellinger_trj_nlopt import Mellinger
-import rospy
+from consensus.mellinger_consensus import *
+from payload_consensus_distributor_ros import *
 
 
-class CentrolizedController(object):
+class CentralizedControllerDistributor(object):
     def __init__(self, name='controller'):
-        dimension = 3
         self.name = name
-        self.controllers = [
-                      Mellinger('hummingbird_0', 0.95, 0.0, 0.35),
-                      Mellinger('hummingbird_1', 0.0, 0.95, 0.35),
-                      Mellinger('hummingbird_2', -0.95, 0.0, 0.35),
-                      Mellinger('hummingbird_3', 0.0, -0.95, 0.35)
-                      ]
+        dict_neighbours = {0: [1, 3],
+                           1: [2, 0],
+                           2: [3, 1],
+                           3: [0, 2]}
+        self.controller = MellingerWithDistributor(
+                                                mav_name='hummingbird',
+                                                num_agents=4,
+                                                dict_neighbours=dict_neighbours,
+                                                c_init=[0.45, 0.05, 0.15, 0.35],
+                                                x=[0.95, 0.0, -0.95, 0.0],
+                                                y=[0.0, 0.95, 0.0, -0.95],
+                                                z=[0.35, 0.35, 0.35, 0.35],
+                                                dim=3
+                                                )
         self.num_of_quads = 4
 
         self.initial_time = None
@@ -28,11 +35,11 @@ class CentrolizedController(object):
                       [0.0, 0.0, 0.0],
                       [0.0, 0.0, 0.0]]
 
-        for controller in self.controllers:
-            controller.NL_planner.setVerticesPosVel(positions, velocities)
+        for i_mellinger in self.controller.Mellingers:
+            i_mellinger.NL_planner.setVerticesPosVel(positions, velocities)
 
     def hover_and_trj_xy(self, dimension='xyz'):
-        for nl_opt in self.controllers:
+        for nl_opt in self.controller.Mellingers:
             nl_opt.optimize()
             nl_opt.getPlanUpToSnap(frequency=50)
 
@@ -49,8 +56,11 @@ class CentrolizedController(object):
         '''
         ROS Loop
         '''
+        for i, i_mellinger in enumerate(self.controller.Mellingers):
+            i_mellinger.update_current_state()
         while not rospy.is_shutdown():
-            for i_mellinger in self.controllers:
+            self.controller.update_des_distributor()
+            for i_mellinger in self.controller.Mellingers:
                 if i_mellinger.hover_duration < 5.0:
                     i_mellinger.set_hover_des(target_height=1.5)
                 else:
@@ -62,13 +72,17 @@ class CentrolizedController(object):
                     i_mellinger.publish_poly3d_trj()
                 i_mellinger.publish_err()
                 i_mellinger.update_current_state()
-                i_mellinger.update_desired_inputs()
                 i_mellinger.motorSpeedFromU()
                 i_mellinger.send_motor_command()
             self.rate.sleep()
 
 
 if __name__ == '__main__':
-    central_controller = CentrolizedController()
-    central_controller.hover_and_trj_xy()
+    central_controller_distributor = CentralizedControllerDistributor()
+    central_controller_distributor.hover_and_trj_xy()
+
+
+
+
+
 

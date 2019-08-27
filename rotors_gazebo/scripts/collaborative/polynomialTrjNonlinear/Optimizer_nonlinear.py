@@ -23,9 +23,9 @@ class PolynomialOptNonlinear(object):
 
         self.nl_opt_params = OptNonlinearParams()
 
-    def setupFromVertices(self, vertices, seg_times):
-        self.linear_opt.setupFromVertices(vertices=vertices,segment_times=seg_times)
-        self.segment_times = seg_times
+    def setupFromVertices(self, vertices):
+        self.linear_opt.setupFromVertices(vertices=vertices)
+        self.segment_times = self.linear_opt.get_segment_times()
 
     def addMaximumMagnitudeConstrain(self, derivative, max_value):
         constrain = ConstrainData(derivative, max_value)
@@ -33,9 +33,6 @@ class PolynomialOptNonlinear(object):
 
     def solve_linear(self, opt_order):
         return self.linear_opt.solve_linear(order_to_opt=opt_order)
-
-    def optimize(self):
-        return True
 
     def init_offset(self, offset):
         self.linear_opt.set_init_offset(offset)
@@ -117,6 +114,38 @@ class PolynomialOptNonlinear(object):
         self.linear_opt.reconstructSegmentsFromOpt()
         return result
 
+    def setVerticesPosVel(self, positions, velocities, dim=3):
+        vertices = []
+        vertex_0 = Vertex(dimension=dim, index=0)
+        start_position = positions[0]
+        start_velocity = velocities[0]
+
+        self.construct_constrain(vertex_0, order=0, input_list=start_position)
+        self.construct_constrain(vertex_0, order=1, input_list=start_velocity)
+        vertices.append(vertex_0)
+
+        vertex_0.makeStartOrEnd(position=start_position, up_to_order=4)
+
+        for i, position in enumerate(positions[1:-1]):
+            vertex = Vertex(dimension=dim, index=1)
+            velocity = velocities[i]
+            self.construct_constrain(vertex, order=0, input_list=position)
+            self.construct_constrain(vertex, order=1, input_list=velocity)
+            vertices.append(vertex)
+
+        vertex_2 = Vertex(dimension=dim, index=2)
+        pos = positions[-1]
+        vel = velocities[-1]
+
+        self.construct_constrain(vertex_2, order=0, input_list=pos)
+        self.construct_constrain(vertex_2, order=1, input_list=vel)
+        vertex_2.makeStartOrEnd(position=pos, up_to_order=4)
+        vertices.append(vertex_2)
+
+        self.linear_opt.setupFromVertices(vertices)
+        self.add_max_vel(2.0)
+        self.add_max_acc(1.0)
+
     def setFreeEndHardConstrains(self):
         free_constrains = self.linear_opt.get_free_constrains()
         for i_ineq_constrain in self.inequality_constrain:
@@ -190,43 +219,21 @@ class PolynomialOptNonlinear(object):
         if max(arr.shape[0], arr.shape[1]) == self.linear_opt.D_:
             vertex.add_constrain(derivative_order=order, value=arr.reshape((self.linear_opt.D_, 1)))
 
+    def estimate_segment_time(self):
+        return self.linear_opt.estimate_segment_time()
+
 
 if __name__ == '__main__':
     dimension = 3
     opt_nl = PolynomialOptNonlinear(N=10, dimension=dimension)
-    vertices = []
-    vertex0 = Vertex(dimension=dimension, index=0)
-    start_position = [0.0, 0.0, 0.0]
-    start_velocity = [0.0, 0.0, 0.0]
-    opt_nl.construct_constrain(vertex0, order=0, input_list=start_position)
-    opt_nl.construct_constrain(vertex0, order=1, input_list=start_velocity)
-
-    vertex0.makeStartOrEnd(position=start_position, up_to_order=4)
-
-    vertex1 = Vertex(dimension=dimension, index=1)
-
-    position = [2.0, 0.0, 2.0]
-    velocity = [0.0, 0.0, 0.0]
-    opt_nl.construct_constrain(vertex1, order=0, input_list=position)
-    opt_nl.construct_constrain(vertex1, order=1, input_list=velocity)
-
-    vertex2 = Vertex(dimension=dimension, index=2)
-    position = [4.0, 0.0, 4.0]
-    velocity = [0.0, 0.0, 0.0]
-    opt_nl.construct_constrain(vertex2, order=0, input_list=position)
-    opt_nl.construct_constrain(vertex2, order=1, input_list=velocity)
-
-    vertex2.makeStartOrEnd(position=position, up_to_order=4)
-
-    vertices.append(vertex0)
-    vertices.append(vertex1)
-    vertices.append(vertex2)
-    times = [3.89891, 3.91507]
-    opt_nl.setupFromVertices(vertices, times)
-    opt_nl.add_max_vel(2.0)
-    opt_nl.add_max_acc(1.0)
-
+    opt_nl.setVerticesPosVel(positions=[[0.0, 0.0, 0.0],
+                                        [2.0, 0.0, 2.0],
+                                        [4.0, 0.0, 5.0]],
+                             velocities=[[0.0, 0.0, 0.0],
+                                         [0.0, 0.0, 0.0],
+                                         [0.0, 0.0, 0.0]])
     result = opt_nl.optimizeTimeAndFreeConstraints()
+
     print "result: ", result
     opt_nl.linear_opt.get_d_trajectory(order=0, sample_frequency=50)
     opt_nl.linear_opt.get_d_trajectory(order=1, sample_frequency=50)
@@ -239,6 +246,4 @@ if __name__ == '__main__':
     opt_nl.linear_opt.plot_derivatives(order=3, solver='nonlinear')
     opt_nl.linear_opt.plot_derivatives(order=4, solver='nonlinear')
 
-    # for i_seg, seg in enumerate(opt_nl.linear_opt.get_segments()):
-        # print " seg ", i_seg, " coefficients: ", seg.get_coefficients()
 

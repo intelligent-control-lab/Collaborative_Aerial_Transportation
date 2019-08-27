@@ -15,8 +15,8 @@ class Mellinger(Quadrotor):
     Using nonlinear optimizations.
     """
 
-    def __init__(self, mav_name, x, y, z, dimension=3, N=10):
-        Quadrotor.__init__(self, mav_name)
+    def __init__(self, mav_name, index, x, y, z, dimension=3, N=10):
+        Quadrotor.__init__(self, mav_name, index)
 
         self.k_T = 6.7
         self.k_phi_theta = 1.7
@@ -35,7 +35,7 @@ class Mellinger(Quadrotor):
         k_vxy = 60.7
         k_vz = 60.7
         k_omega = 25.5
-        k_R = 100.5
+        k_R = 85.5
 
         self.k_pI = 2.0
         self.K_p = np.eye(3)
@@ -129,6 +129,7 @@ class Mellinger(Quadrotor):
 
         vec3_euler_des = Vector3Stamped()
         vec3_euler_des.header.stamp = rospy.Time.now()
+
         euler_des = rotationMatrixToEulerAngles(self.desired_R_)
         vec3_euler_des.vector = Vector3(euler_des[0], euler_des[1], euler_des[2])
         self.publisher_euler_des.publish(vec3_euler_des)
@@ -172,9 +173,6 @@ class Mellinger(Quadrotor):
                 self.desired_velocities[2, 0] = 0.0
         self.publish_desired_trj()
 
-    def set_desried_trj(self):
-        return
-
     def construct_vertices(self, re_goal_position):
         vertices = []
         vertex0 = Vertex(dimension=3, index=0)
@@ -212,12 +210,18 @@ class Mellinger(Quadrotor):
         acc_vec.vector = Vector3(self.acc[0, 0], self.acc[1, 0], self.acc[2, 0])
         self.pub_actual_acc.publish(acc_vec)
 
-        t = self.acc + np.array([[0.0], [0.0], [self.g]])
+        self.x_B = self.R_[:, 0].reshape((1, 3))
+        self.y_B = self.R_[:, 1].reshape((1, 3))
+        self.z_B = self.R_[:, 2].reshape((1, 3))
 
-        self.z_B = (t / np.linalg.norm(t)).transpose()
-        self.x_C = np.array([np.cos(self.euler_quads[2, 0]), np.sin(self.euler_quads[2, 0]), 0.0])
-        self.y_B = np.cross(self.z_B, self.x_C) / np.linalg.norm(np.cross(self.z_B, self.x_C))
-        self.x_B = np.cross(self.y_B, self.z_B)
+        # self.update_c()
+
+        # t = self.acc + np.array([[0.0], [0.0], [self.g]])
+        #
+        # self.z_B = (t / np.linalg.norm(t)).transpose()
+        # self.x_C = np.array([np.cos(self.euler_quads[2, 0]), np.sin(self.euler_quads[2, 0]), 0.0])
+        # self.y_B = np.cross(self.z_B, self.x_C) / np.linalg.norm(np.cross(self.z_B, self.x_C))
+        # self.x_B = np.cross(self.y_B, self.z_B)
 
     def update_desired_inputs(self):
         self.update_desired_F()

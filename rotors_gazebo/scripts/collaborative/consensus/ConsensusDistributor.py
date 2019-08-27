@@ -78,9 +78,15 @@ class ConsensusNet(object):
         new_value = np.dot(self.W, self.values).copy()
         self.values = new_value
         self.values_history = np.concatenate((self.values_history, new_value), axis=1)
+        return self.values
 
     def get_value(self, index):
         return self.values[index, 0]
+
+    def plot_consensus_history(self):
+        plt.plot(self.values_history.T)
+        plt.grid(True)
+        plt.show()
 
 
 if __name__ == '__main__':

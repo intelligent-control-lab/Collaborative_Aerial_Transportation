@@ -6,6 +6,7 @@ class PolyTrajectory3D(object):
     def __init__(self, num_segs=1, orders=[12], seg_endT=[3.0], offset=np.zeros((1, 3))):
         self.poly3d_trj = []
         self.poly3d_vel = []
+        self.poly3d_acc = []
         self.offset = offset
         self.offset_added = False
         self.poly_x = PolyTrajectory(
@@ -72,6 +73,10 @@ class PolyTrajectory3D(object):
         trj_vy = self.poly_y.get_d_trajectory(order=1, sample_frequency=sample_frequency)
         trj_vz = self.poly_z.get_d_trajectory(order=1, sample_frequency=sample_frequency)
 
+        trj_accx = self.poly_x.get_d_trajectory(order=2, sample_frequency=sample_frequency)
+        trj_accy = self.poly_y.get_d_trajectory(order=2, sample_frequency=sample_frequency)
+        trj_accz = self.poly_z.get_d_trajectory(order=2, sample_frequency=sample_frequency)
+
         # shape: (num_segments * num_intervals, 3)
         self.poly3d_trj = np.concatenate(
             (trj_x, trj_y, trj_z),
@@ -80,6 +85,11 @@ class PolyTrajectory3D(object):
 
         self.poly3d_vel = np.concatenate(
             (trj_vx, trj_vy, trj_vz),
+            axis=1
+        )
+
+        self.poly3d_acc = np.concatenate(
+            (trj_accx, trj_accy, trj_accz),
             axis=1
         )
 
@@ -99,17 +109,23 @@ class PolyTrajectory3D(object):
     def get_3d_velocities(self):
         return self.poly3d_vel
 
+    def get_3d_accelerations(self):
+        return self.poly3d_acc
+
     def plot_x(self):
         self.poly_x.plot_poly()
         self.poly_x.plot_derivatives(order=1)
+        self.poly_x.plot_derivatives(order=2)
 
     def plot_y(self):
         self.poly_y.plot_poly()
         self.poly_y.plot_derivatives(order=1)
+        self.poly_y.plot_derivatives(order=2)
 
     def plot_z(self):
         self.poly_z.plot_poly()
         self.poly_z.plot_derivatives(order=1)
+        self.poly_z.plot_derivatives(order=2)
 
     def set_trj_penalties_mode(self, mode='snap'):
         self.poly_x.set_trj_penalties(mode=mode)

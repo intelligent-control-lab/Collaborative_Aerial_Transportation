@@ -43,6 +43,10 @@ class PolynomialOptLinear(object):
         self.offset_segs = []
         self.offset_all = []
 
+        # limit on dynamics
+        self.max_v = 2.0
+        self.max_a = 2.0
+
     def get_vertices(self):
         return self.vertices
 
@@ -72,13 +76,14 @@ class PolynomialOptLinear(object):
         self.offset_all = offset
         self.poly_pos += offset
 
-    def setupFromVertices(self, vertices, segment_times):
+    def setupFromVertices(self, vertices):
         self.checkValidVertices(vertices)
         self.vertices = vertices
         self.n_vertices = len(vertices)
         self.n_segments = self.n_vertices - 1
-        self.seg_times = segment_times
-        self.segments = [Segment(seg_t, self.D_, self.N_) for seg_t in segment_times]
+        self.seg_times = [0.0 for _ in range(self.n_segments)]
+        self.segments = [Segment(1.0, self.D_, self.N_) for _ in range(self.n_segments)]
+        self.seg_times = self.estimate_segment_time()
         self.set_offset()
         self.setupMappingMatrices()
         self.computeInverseA()
@@ -362,6 +367,27 @@ class PolynomialOptLinear(object):
             value_array = np.array([input_list[i] for i in range(self.D_)])
             vertex.add_constrain(derivative_order=order, value=value_array)
 
+    def estimate_segment_time(self, constant=6.5):
+        '''
+        refer: eth_mav_trajectory_generation project
+        '''
+        if len(self.vertices) != 0:
+            seg_times = []
+            vertex_0 = list(self.vertices)[0]
+            for i, vertex in enumerate(self.vertices[1:]):
+                pos_front = vertex_0.get_constrain(derivative_order=0)
+                pos_next = vertex.get_constrain(derivative_order=0)
+                pos_diff = (pos_next - pos_front)
+                vertex_0 = vertex
+                dist = np.sqrt(np.dot(pos_diff, pos_diff))
+                t = dist / self.max_v * 2 * (1.0 + constant * self.max_v / self.max_a * np.exp(-dist / self.max_v * 2))
+                seg_times.append(t)
+                self.segments[i].set_segment_time(t)
+            return seg_times
+        else:
+            print "No vertices yet, setup vertices first!"
+            return None
+
 
 if __name__ == '__main__':
     dimension = 3
@@ -393,8 +419,8 @@ if __name__ == '__main__':
     vertices.append(vertex0)
     vertices.append(vertex1)
     vertices.append(vertex2)
-    times = [1.0, 2.0]
-    opt.setupFromVertices(vertices, times)
+
+    opt.setupFromVertices(vertices)
 
     opt.solve_linear(order_to_opt=4)
     aa = opt.dp_compact
