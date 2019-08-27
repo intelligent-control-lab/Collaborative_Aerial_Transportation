@@ -87,7 +87,9 @@ class Quadrotor(object):
 
         # subscribers from ROS
         # odom
+
         topic_name_odom = '/' + self.name + '/ground_truth/odometry'
+        print topic_name_odom
         self.sub_quad0_odometry = rospy.Subscriber(topic_name_odom, Odometry, self.cb_quad_odom)
 
         # imu

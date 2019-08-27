@@ -256,6 +256,9 @@ class Mellinger(Quadrotor):
         u1 = self.u[0, 0]
         dot_u1 = np.dot(self.z_B, self.desired_jerk)
         ddot_u1 = np.dot(self.z_B, self.desired_snap)
+        # print "self.desired_jerk: ", self.desired_jerk
+        # print "dot_u1: ", dot_u1
+        # print "self.z_B: ", self.z_B
         h_omega = self.mass / self.u[0, 0] * (self.desired_jerk -
                                                 (
                                                     np.multiply(

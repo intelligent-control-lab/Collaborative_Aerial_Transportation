@@ -1,16 +1,15 @@
 from mellinger_trj_nlopt import Mellinger
 import rospy
 
-
 class CentrolizedController(object):
     def __init__(self, name='controller'):
         dimension = 3
         self.name = name
         self.controllers = [
-                      Mellinger('hummingbird_0', 0.95, 0.0, 0.35),
-                      Mellinger('hummingbird_1', 0.0, 0.95, 0.35),
-                      Mellinger('hummingbird_2', -0.95, 0.0, 0.35),
-                      Mellinger('hummingbird_3', 0.0, -0.95, 0.35)
+                      Mellinger('hummingbird', 0, 0.95, 0.0, 0.35, dimension, N=10),
+                      Mellinger('hummingbird', 1, 0.0, 0.95, 0.35, dimension, N=10),
+                      Mellinger('hummingbird', 2, -0.95, 0.0, 0.35, dimension, N=10),
+                      Mellinger('hummingbird', 3, 0.0, -0.95, 0.35, dimension, N=10)
                       ]
         self.num_of_quads = 4
 
