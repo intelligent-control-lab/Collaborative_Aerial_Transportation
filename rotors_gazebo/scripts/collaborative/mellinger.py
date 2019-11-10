@@ -3,7 +3,7 @@ from std_msgs.msg import Float64
 from geometry_msgs.msg import Vector3Stamped, Vector3
 import numpy as np
 import rospy
-from poly_trajectory3D import PolyTrajectory3D
+from polynomialTrjNonlinear.poly_trajectory3D import PolyTrajectory3D
 
 
 class Mellinger(Quadrotor):

@@ -1,0 +1,6 @@
+model_checkpoint_path: "/home/lucasyu/catkin_ws/src/collaborative_transportation/rotors_gazebo/scripts/collaborative/MARL/saved_network/network-500"
+all_model_checkpoint_paths: "/home/lucasyu/catkin_ws/src/collaborative_transportation/rotors_gazebo/scripts/collaborative/MARL/saved_network/network-100"
+all_model_checkpoint_paths: "/home/lucasyu/catkin_ws/src/collaborative_transportation/rotors_gazebo/scripts/collaborative/MARL/saved_network/network-200"
+all_model_checkpoint_paths: "/home/lucasyu/catkin_ws/src/collaborative_transportation/rotors_gazebo/scripts/collaborative/MARL/saved_network/network-300"
+all_model_checkpoint_paths: "/home/lucasyu/catkin_ws/src/collaborative_transportation/rotors_gazebo/scripts/collaborative/MARL/saved_network/network-400"
+all_model_checkpoint_paths: "/home/lucasyu/catkin_ws/src/collaborative_transportation/rotors_gazebo/scripts/collaborative/MARL/saved_network/network-500"

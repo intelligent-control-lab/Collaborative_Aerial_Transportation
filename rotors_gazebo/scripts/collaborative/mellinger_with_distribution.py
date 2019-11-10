@@ -5,7 +5,8 @@ from payload_distributor import *
 class MellingerWithDistributor(Mellinger):
     def __init__(self, mav_name, index, x, y, z, dim=3):
         Mellinger.__init__(self, mav_name, index, x, y, z, dimension=dim, N=10)
-        self.distributor = PayloadDistributor()
+        c_init = list(np.ones((4,1)) / 4)
+        self.distributor = PayloadDistributor(c_init, index)
         self.c_E_ = np.zeros((6, 6))
         self.M_ = np.zeros((6, 6))
         self.M_[0:3, 0:3] = self.mass * np.eye(3)
@@ -31,12 +32,13 @@ class MellingerWithDistributor(Mellinger):
         self.G_ = self.W_ + self.c_W0
 
     def get_M0(self):
-        return self.distributor.getM0(self.index)
+        return self.distributor.getM0()
 
     def get_W0(self):
-        return self.distributor.getW0(self.index)
+        return self.distributor.getW0()
 
     def get_c(self):
+        print "c: ", self.distributor.get_c(self.index)
         return self.distributor.get_c(self.index)
 
     def update_controller(self):
@@ -102,33 +104,25 @@ class CentralizedControllerDistributor(object):
                       MellingerWithDistributor(
                           mav_name='hummingbird',
                           index=0,
-                          list_neighbour_indx=[1, 3],
-                          c=0.45,
-                          x=0.95, y=0.0, z=0.35,
+                          x=0.95, y=0.0, z=0.25,
                           dim=dimension
                       ),
                       MellingerWithDistributor(
                           'hummingbird',
                           index=1,
-                          list_neighbour_indx=[2, 0],
-                          c=0.05,
-                          x=0.0, y=0.95, z=0.35,
+                          x=0.0, y=0.95, z=0.25,
                           dim=dimension
                       ),
                       MellingerWithDistributor(
                           'hummingbird',
                           index=2,
-                          list_neighbour_indx=[3, 1],
-                          c=0.15,
-                          x=-0.95, y=0.0, z=0.35,
+                          x=-0.95, y=0.0, z=0.25,
                           dim=dimension
                       ),
                       MellingerWithDistributor(
                           'hummingbird',
                           index=3,
-                          list_neighbour_indx=[0, 2],
-                          c=0.35,
-                          x=0.0, y=-0.95, z=0.35,
+                          x=0.0, y=-0.95, z=0.25,
                           dim=dimension
                       )
                       ]
@@ -154,12 +148,8 @@ class CentralizedControllerDistributor(object):
     def hover_and_trj_xy(self, dimension='xyz'):
         for nl_opt in self.controllers:
             nl_opt.optimize()
-            nl_opt.getPlanUpToSnap(frequency=50)
+            nl_opt.getPlanUpToSnap(frequency=50.0)
 
-        '''
-        init ROS node
-        '''
-        rospy.init_node(self.name, anonymous=True)
         # Timer
         self.initial_time = rospy.Time.now()
         self.t = self.initial_time
@@ -171,12 +161,14 @@ class CentralizedControllerDistributor(object):
         '''
         while not rospy.is_shutdown():
             for i_mellinger in self.controllers:
-                if i_mellinger.hover_duration < 5.0:
+                if i_mellinger.hover_duration < 1.5:
                     i_mellinger.set_hover_des(target_height=1.5)
                 else:
+                    i_mellinger.update_offset_xyz(i_mellinger.payload_position[0, 0], i_mellinger.payload_position[1, 0], i_mellinger.payload_position[2, 0])
+                    i_mellinger.load_ref_trj_payload(dimension=dimension)
                     if not i_mellinger.offset_added:
                         print "hovering finished, going into the next phase..."
-                        i_mellinger.update_offset()
+                        i_mellinger.update_offset_xyz(i_mellinger.positions_quads[0, 0], i_mellinger.positions_quads[1, 0], i_mellinger.positions_quads[2, 0])
                         i_mellinger.load_trj_lists(dimension=dimension)
                         print "offset added"
                     i_mellinger.publish_poly3d_trj()
@@ -189,6 +181,10 @@ class CentralizedControllerDistributor(object):
 
 
 if __name__ == '__main__':
+    '''
+    init ROS node
+    '''
+    rospy.init_node('controller', anonymous=True)
     central_controller_distributor = CentralizedControllerDistributor()
     central_controller_distributor.hover_and_trj_xy()
 

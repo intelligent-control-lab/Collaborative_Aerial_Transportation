@@ -7,7 +7,7 @@ from geometry_msgs.msg import Vector3Stamped, Vector3
 from polynomialTrjNonlinear.Optimizer_nonlinear import PolynomialOptNonlinear
 from polynomialTrjNonlinear.vertex import Vertex
 from basic_functions import *
-
+import copy
 
 class Mellinger(Quadrotor):
     """
@@ -30,11 +30,14 @@ class Mellinger(Quadrotor):
         ])
 
         # controller parameters for controlling a single robot
-        k_pxy = 47.0
-        k_pz = 47.0
+        # hzyu
+        k_pxy = 50.0
+        k_pz = 70.0
+        k_pxy = 25.0
+        k_pz = 35.0
         k_vxy = 60.7
         k_vz = 60.7
-        k_omega = 25.5
+        k_omega = 18.5
         k_R = 85.5
 
         self.k_pI = 2.0
@@ -71,6 +74,14 @@ class Mellinger(Quadrotor):
         self.trj_y_list = []
         self.trj_z_list = []
 
+        self.trj_x_list_payload = []
+        self.trj_y_list_payload = []
+        self.trj_z_list_payload = []
+
+        self.trj_vx_list_payload = []
+        self.trj_vy_list_payload = []
+        self.trj_vz_list_payload = []
+
         self.trj_vx_list = []
         self.trj_vy_list = []
         self.trj_vz_list = []
@@ -86,6 +97,13 @@ class Mellinger(Quadrotor):
         self.trj_snapx_list = []
         self.trj_snapy_list = []
         self.trj_snapz_list = []
+
+        self.abs_trj_pos = None
+        self.rel_trj_pos = None
+        # self.rel_trj_vel = None
+        # self.rel_trj_acc = None
+        # self.rel_trj_jerk = None
+        # self.rel_trj_snap = None
 
         self.offset_added = False
 
@@ -108,9 +126,15 @@ class Mellinger(Quadrotor):
         self.K_omega = k_omega
         self.K_R = k_R
 
+
     # updates
     def update_offset(self):
         self.NL_planner.init_offset(self.positions_quads.T)
+        self.offset_added = True
+
+    def update_offset_xyz(self, x, y, z):
+        rel_trj_pos = copy.deepcopy(self.rel_trj_pos)
+        self.abs_trj_pos = rel_trj_pos + np.array([x, y, z])
         self.offset_added = True
 
     def update_omega_err(self):
@@ -190,7 +214,9 @@ class Mellinger(Quadrotor):
 
         self.optimize()
 
-        self.getPlanUpToSnap(frequency=50)
+        self.getPlanUpToSnap(frequency=self.frequency)
+        self.getPlanUpToSnap(frequency=100.0)
+
 
     def optimize(self):
         result = self.NL_planner.optimizeTimeAndFreeConstraints()
@@ -203,25 +229,23 @@ class Mellinger(Quadrotor):
         self.NL_planner.linear_opt.get_d_trajectory(order=3, sample_frequency=frequency)
         self.NL_planner.linear_opt.get_d_trajectory(order=4, sample_frequency=frequency)
 
-    def update_current_state(self):
-        # actual values
-        acc_vec = Vector3Stamped()
-        acc_vec.header.stamp = rospy.Time.now()
-        acc_vec.vector = Vector3(self.acc[0, 0], self.acc[1, 0], self.acc[2, 0])
-        self.pub_actual_acc.publish(acc_vec)
+        self.rel_trj_pos = copy.deepcopy(self.NL_planner.linear_opt.poly_pos)
+        # self.rel_trj_vel = copy.deepcopy(self.NL_planner.linear_opt.poly_velocity)
+        # self.rel_trj_acc = copy.deepcopy(self.NL_planner.linear_opt.poly_acc)
+        # self.rel_trj_jerk = copy.deepcopy(self.NL_planner.linear_opt.poly_jerk)
+        # self.rel_trj_snap = copy.deepcopy(self.NL_planner.linear_opt.poly_snap)
 
+    def update_current_state(self):
         self.x_B = self.R_[:, 0].reshape((1, 3))
         self.y_B = self.R_[:, 1].reshape((1, 3))
         self.z_B = self.R_[:, 2].reshape((1, 3))
 
-        # self.update_c()
+        # actual values
+        # acc_vec = Vector3Stamped()
+        # acc_vec.header.stamp = rospy.Time.now()
+        # acc_vec.vector = Vector3(self.acc[0, 0], self.acc[1, 0], self.acc[2, 0])
+        # self.pub_actual_acc.publish(acc_vec)
 
-        # t = self.acc + np.array([[0.0], [0.0], [self.g]])
-        #
-        # self.z_B = (t / np.linalg.norm(t)).transpose()
-        # self.x_C = np.array([np.cos(self.euler_quads[2, 0]), np.sin(self.euler_quads[2, 0]), 0.0])
-        # self.y_B = np.cross(self.z_B, self.x_C) / np.linalg.norm(np.cross(self.z_B, self.x_C))
-        # self.x_B = np.cross(self.y_B, self.z_B)
 
     def update_desired_inputs(self):
         self.update_desired_F()
@@ -231,18 +255,18 @@ class Mellinger(Quadrotor):
     def update_desired_F(self):
         self.update_pos_err()
         self.update_vel_err()
-
         self.desired_F = -(np.dot(self.K_p, self.e_positions) + np.multiply(self.k_pI, self.e_p_integral)) - \
                           (np.dot(self.K_v, self.e_velocities)) + np.array([[0.0], [0.0], [self.mass * self.g]]) + \
                            np.multiply(self.mass, self.desired_acceleratons)
 
     def update_desired_values(self):
         # desired values
+        #print "z_B: ", self.z_B
         self.u[0, 0] = np.dot(self.z_B, self.desired_F)
 
-        float_u = Float64()
-        float_u.data = self.u[0, 0]/10.0 # for better visualization
-        self.pub_desired_u1.publish(float_u)
+        # float_u = Float64()
+        # float_u.data = self.u[0, 0]/10.0 # for better visualization
+        # self.pub_desired_u1.publish(float_u)
 
         self.z_B_des = (self.desired_F / np.linalg.norm(self.desired_F)).transpose()
         self.x_C_des = np.array([np.cos(self.desired_yaw), np.sin(self.desired_yaw), 0.0])
@@ -314,10 +338,10 @@ class Mellinger(Quadrotor):
                 )
             , self.desired_angular_acc
             )
-
-        self.u[1:4] = - np.multiply(self.K_R, self.e_R_) - np.multiply(self.K_omega, self.e_omegas)\
+        self.desired_M = - np.multiply(self.K_R, self.e_R_) - np.multiply(self.K_omega, self.e_omegas)\
                       + np.cross(self.angular_vel_quads.T, np.dot(self.J, self.angular_vel_quads).T).T\
                       - np.dot(self.J, angular_acc_tmp)
+        self.u[1:4] = self.desired_M
 
     def motorSpeedFromU(self):
         aa = self.u
@@ -326,11 +350,48 @@ class Mellinger(Quadrotor):
     def multiply_motor_speed(self, k):
         self.motor_speed = np.multiply(self.motor_speed, k)
 
+    def load_ref_trj_payload(self, dimension='xyz'):
+        # load payload reference trajectories into lists:
+        if dimension == 'xyz':
+            self.trj_x_list_payload = self.abs_trj_pos[:, 0].tolist()
+            self.trj_y_list_payload = self.abs_trj_pos[:, 1].tolist()
+            self.trj_z_list_payload = self.abs_trj_pos[:, 2].tolist()
+
+            self.trj_vx_list_payload = self.NL_planner.linear_opt.poly_velocity[:, 0].tolist()
+            self.trj_vy_list_payload = self.NL_planner.linear_opt.poly_velocity[:, 1].tolist()
+            self.trj_vz_list_payload = self.NL_planner.linear_opt.poly_velocity[:, 2].tolist()
+        elif dimension == 'x':
+            self.trj_x_list_payload = self.abs_trj_pos[:, 0].tolist()
+            self.trj_y_list_payload = np.multiply(self.positions_quads[1, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 0].shape)).tolist()
+            self.trj_z_list_payload = np.multiply(self.positions_quads[2, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 0].shape)).tolist()
+
+            self.trj_vx_list_payload = self.NL_planner.linear_opt.poly_velocity[:, 0].tolist()
+            self.trj_vy_list_payload = np.zeros(self.NL_planner.linear_opt.poly_velocity[:, 0].shape).tolist()
+            self.trj_vz_list_payload = np.zeros(self.NL_planner.linear_opt.poly_velocity[:, 0].shape).tolist()
+
+        elif dimension == 'y':
+            self.trj_x_list_payload = np.multiply(self.positions_quads[0, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 1].shape)).tolist()
+            self.trj_y_list_payload = self.abs_trj_pos[:, 1].tolist()
+            self.trj_z_list_payload = np.multiply(self.positions_quads[2, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 1].shape)).tolist()
+
+            self.trj_vx_list_payload = np.zeros(self.NL_planner.linear_opt.poly_pos[:, 1].shape).tolist()
+            self.trj_vy_list_payload = self.NL_planner.linear_opt.poly_velocity[:, 1].tolist()
+            self.trj_vz_list_payload = np.zeros(self.NL_planner.linear_opt.poly_pos[:, 1].shape).tolist()
+
+        elif dimension == 'z':
+            self.trj_x_list_payload = np.multiply(self.positions_quads[0, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 1].shape)).tolist()
+            self.trj_y_list_payload = np.multiply(self.positions_quads[1, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 1].shape)).tolist()
+            self.trj_z_list_payload = self.abs_trj_pos[:, 2].tolist()
+
+            self.trj_vx_list_payload = np.zeros(self.NL_planner.linear_opt.poly_velocity[:, 2].shape).tolist()
+            self.trj_vy_list_payload = np.zeros(self.NL_planner.linear_opt.poly_velocity[:, 2].shape).tolist()
+            self.trj_vz_list_payload = self.NL_planner.linear_opt.poly_velocity[:, 2].tolist()
+
     def load_trj_lists(self, dimension='xyz'):
         if dimension == 'xyz':
-            self.trj_x_list = self.NL_planner.linear_opt.poly_pos[:, 0].tolist()
-            self.trj_y_list = self.NL_planner.linear_opt.poly_pos[:, 1].tolist()
-            self.trj_z_list = self.NL_planner.linear_opt.poly_pos[:, 2].tolist()
+            self.trj_x_list = self.abs_trj_pos[:, 0].tolist()
+            self.trj_y_list = self.abs_trj_pos[:, 1].tolist()
+            self.trj_z_list = self.abs_trj_pos[:, 2].tolist()
 
             self.trj_vx_list = self.NL_planner.linear_opt.poly_velocity[:, 0].tolist()
             self.trj_vy_list = self.NL_planner.linear_opt.poly_velocity[:, 1].tolist()
@@ -340,16 +401,16 @@ class Mellinger(Quadrotor):
             self.trj_accy_list = self.NL_planner.linear_opt.poly_acc[:, 1].tolist()
             self.trj_accz_list = self.NL_planner.linear_opt.poly_acc[:, 2].tolist()
 
-            self.trj_jerkx_list = self.NL_planner.linear_opt.poly_acc[:, 0].tolist()
-            self.trj_jerky_list = self.NL_planner.linear_opt.poly_acc[:, 1].tolist()
-            self.trj_jerkz_list = self.NL_planner.linear_opt.poly_acc[:, 2].tolist()
+            self.trj_jerkx_list = self.NL_planner.linear_opt.poly_jerk[:, 0].tolist()
+            self.trj_jerky_list = self.NL_planner.linear_opt.poly_jerk[:, 1].tolist()
+            self.trj_jerkz_list = self.NL_planner.linear_opt.poly_jerk[:, 2].tolist()
 
-            self.trj_snapx_list = self.NL_planner.linear_opt.poly_acc[:, 0].tolist()
-            self.trj_snapy_list = self.NL_planner.linear_opt.poly_acc[:, 1].tolist()
-            self.trj_snapz_list = self.NL_planner.linear_opt.poly_acc[:, 2].tolist()
+            self.trj_snapx_list = self.NL_planner.linear_opt.poly_snap[:, 0].tolist()
+            self.trj_snapy_list = self.NL_planner.linear_opt.poly_snap[:, 1].tolist()
+            self.trj_snapz_list = self.NL_planner.linear_opt.poly_snap[:, 2].tolist()
 
         elif dimension == 'x':
-            self.trj_x_list = self.NL_planner.linear_opt.poly_pos[:, 0].tolist()
+            self.trj_x_list = self.abs_trj_pos[:, 0].tolist()
             self.trj_y_list = np.multiply(self.positions_quads[1, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 0].shape)).tolist()
             self.trj_z_list = np.multiply(self.positions_quads[2, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 0].shape)).tolist()
 
@@ -371,7 +432,7 @@ class Mellinger(Quadrotor):
 
         elif dimension == 'y':
             self.trj_x_list = np.multiply(self.positions_quads[0, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 1].shape)).tolist()
-            self.trj_y_list = self.NL_planner.linear_opt.poly_pos[:, 1].tolist()
+            self.trj_y_list = self.abs_trj_pos[:, 1].tolist()
             self.trj_z_list = np.multiply(self.positions_quads[2, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 1].shape)).tolist()
 
             self.trj_vx_list = np.zeros(self.NL_planner.linear_opt.poly_pos[:, 1].shape).tolist()
@@ -393,7 +454,7 @@ class Mellinger(Quadrotor):
         elif dimension == 'z':
             self.trj_x_list = np.multiply(self.positions_quads[0, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 1].shape)).tolist()
             self.trj_y_list = np.multiply(self.positions_quads[1, 0], np.ones(self.NL_planner.linear_opt.poly_pos[:, 1].shape)).tolist()
-            self.trj_z_list = self.NL_planner.linear_opt.poly_pos[:, 2].tolist()
+            self.trj_z_list = self.abs_trj_pos[:, 2].tolist()
 
             self.trj_vx_list = np.zeros(self.NL_planner.linear_opt.poly_velocity[:, 2].shape).tolist()
             self.trj_vy_list = np.zeros(self.NL_planner.linear_opt.poly_velocity[:, 2].shape).tolist()
@@ -411,29 +472,36 @@ class Mellinger(Quadrotor):
             self.trj_snapy_list = np.zeros(self.NL_planner.linear_opt.poly_snap[:, 2].shape).tolist()
             self.trj_snapz_list = self.NL_planner.linear_opt.poly_snap[:, 2].tolist()
 
-    def publish_poly3d_point(self, xyz_arr, v_xyz_arr, acc_xyz_arr, jerk_xyz_arr, snap_xyz_arr):
-        self.desired_positions = xyz_arr.reshape((3, 1))
-        self.desired_velocities = v_xyz_arr.reshape((3, 1))
-        self.desired_acceleratons = acc_xyz_arr.reshape((3, 1))
-        self.desired_jerk = jerk_xyz_arr.reshape((3, 1))
-        self.desired_snap = snap_xyz_arr.reshape((3, 1))
+    def publish_poly3d_point(self, xyz_payload, xyz_arr, v_xyz_arr, acc_xyz_arr, jerk_xyz_arr, snap_xyz_arr):
+        self.des_payload_position = xyz_payload
+        self.desired_positions = xyz_arr
+        self.desired_velocities = v_xyz_arr
+        self.desired_acceleratons = acc_xyz_arr
+        self.desired_jerk = jerk_xyz_arr
+        self.desired_snap = snap_xyz_arr
         self.publish_desired_trj()
 
     def publish_poly3d_trj(self):
         if self.isPolynomialSolved:
             if len(self.trj_x_list) == 1:
-                trj_tmp = np.array([self.trj_x_list[0], self.trj_y_list[0], self.trj_z_list[0]])
-                trj_v_tmp = np.array([self.trj_vx_list[0], self.trj_vy_list[0], self.trj_vz_list[0]])
-                trj_acc_tmp = np.array([self.trj_accx_list[0], self.trj_accy_list[0], self.trj_accz_list[0]])
-                trj_jerk_tmp = np.array([self.trj_jerkx_list[0], self.trj_jerky_list[0], self.trj_jerkz_list[0]])
-                trj_snap_tmp = np.array([self.trj_snapx_list[0], self.trj_snapy_list[0], self.trj_snapz_list[0]])
+                # hzyu
+                # trj_payload_tmp = np.zeros((3, 1))
+                trj_payload_tmp = np.array([self.trj_x_list_payload[0], self.trj_y_list_payload[0], self.trj_z_list_payload[0]]).reshape((3, 1))
+                trj_tmp = np.array([self.trj_x_list[0], self.trj_y_list[0], self.trj_z_list[0]]).reshape((3, 1))
+                trj_v_tmp = np.array([self.trj_vx_list[0], self.trj_vy_list[0], self.trj_vz_list[0]]).reshape((3, 1))
+                trj_acc_tmp = np.array([self.trj_accx_list[0], self.trj_accy_list[0], self.trj_accz_list[0]]).reshape((3, 1))
+                trj_jerk_tmp = np.array([self.trj_jerkx_list[0], self.trj_jerky_list[0], self.trj_jerkz_list[0]]).reshape((3, 1))
+                trj_snap_tmp = np.array([self.trj_snapx_list[0], self.trj_snapy_list[0], self.trj_snapz_list[0]]).reshape((3, 1))
             else:
-                trj_tmp = np.array([self.trj_x_list.pop(0), self.trj_y_list.pop(0), self.trj_z_list.pop(0)])
-                trj_v_tmp = np.array([self.trj_vx_list.pop(0), self.trj_vy_list.pop(0), self.trj_vz_list.pop(0)])
-                trj_acc_tmp = np.array([self.trj_accx_list.pop(0), self.trj_accy_list.pop(0), self.trj_accz_list.pop(0)])
-                trj_jerk_tmp = np.array([self.trj_jerkx_list.pop(0), self.trj_jerky_list.pop(0), self.trj_jerkz_list.pop(0)])
-                trj_snap_tmp = np.array([self.trj_snapx_list.pop(0), self.trj_snapy_list.pop(0), self.trj_snapz_list.pop(0)])
-            self.publish_poly3d_point(trj_tmp, trj_v_tmp, trj_acc_tmp, trj_jerk_tmp, trj_snap_tmp)
+                # hzyu
+                # trj_payload_tmp = np.zeros((3, 1))
+                trj_payload_tmp = np.array([self.trj_x_list_payload.pop(0), self.trj_y_list_payload.pop(0), self.trj_z_list_payload.pop(0)]).reshape((3, 1))
+                trj_tmp = np.array([self.trj_x_list.pop(0), self.trj_y_list.pop(0), self.trj_z_list.pop(0)]).reshape((3, 1))
+                trj_v_tmp = np.array([self.trj_vx_list.pop(0), self.trj_vy_list.pop(0), self.trj_vz_list.pop(0)]).reshape((3, 1))
+                trj_acc_tmp = np.array([self.trj_accx_list.pop(0), self.trj_accy_list.pop(0), self.trj_accz_list.pop(0)]).reshape((3, 1))
+                trj_jerk_tmp = np.array([self.trj_jerkx_list.pop(0), self.trj_jerky_list.pop(0), self.trj_jerkz_list.pop(0)]).reshape((3, 1))
+                trj_snap_tmp = np.array([self.trj_snapx_list.pop(0), self.trj_snapy_list.pop(0), self.trj_snapz_list.pop(0)]).reshape((3, 1))
+            self.publish_poly3d_point(trj_payload_tmp, trj_tmp, trj_v_tmp, trj_acc_tmp, trj_jerk_tmp, trj_snap_tmp)
         else:
             print "Polynomial has not been solved yet! Please solve the poly coefficients first!"
 
@@ -455,7 +523,7 @@ class Mellinger(Quadrotor):
 
     def run(self):
         self.optimize()
-        self.getPlanUpToSnap(frequency=50)
+        self.getPlanUpToSnap(frequency=self.frequency)
         self.load_trj_lists()
 
         rospy.init_node(self.name, anonymous=True)
@@ -476,7 +544,7 @@ class Mellinger(Quadrotor):
 
     def hover_and_trj_xy(self, dimension='x'):
         self.optimize()
-        self.getPlanUpToSnap(frequency=50)
+        self.getPlanUpToSnap(frequency=self.frequency)
 
         # self.calculatePosVelAcc()
         # self.NL_planner.linear_opt.plot_derivatives(order=0)

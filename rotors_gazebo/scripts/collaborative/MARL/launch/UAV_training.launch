@@ -1,0 +1,8 @@
+<launch>
+
+    <!-- load the parameters for the algorithm -->
+    <rosparam command="load" file="$(find rotors_gazebo)/scripts/collaborative/MARL/config/MADDPG_params.yaml" />
+
+    <!-- Launch the training system -->
+    <node pkg="rotors_gazebo" name="multi_uav_gym" type="start_training1.py" output="screen" respawn="false"/>
+</launch>

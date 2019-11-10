@@ -8,6 +8,8 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu
 import yaml
 from basic_functions import *
+import os.path
+import copy
 
 
 class Quadrotor(object):
@@ -21,8 +23,10 @@ class Quadrotor(object):
         self.L = 0.0
         self.mass = 0.0
         self.rate = 0.0
-        self.frequency = 50
-        self.dt = 1 / 50.0
+        self.frequency = 100
+        self.dt = 1 / 100.0
+
+        self.payload_center = np.zeros((3, 1))
 
         self.pre_processing()
 
@@ -57,6 +61,8 @@ class Quadrotor(object):
         self.u[0, 0] = 10.0
 
         # references
+        self.des_payload_position = np.zeros((3, 1))
+        self.des_payload_velocity = np.zeros((3, 1))
         self.desired_positions = np.zeros((3, 1))
         self.desired_velocities = np.zeros((3, 1))
         self.desired_acceleratons = np.zeros((3, 1))
@@ -67,6 +73,7 @@ class Quadrotor(object):
         self.desired_angular_acc = np.zeros((3, 1))
         self.desired_R_ = np.zeros((3, 3))
         self.desired_F = np.zeros((3, 1))
+        self.desired_M = np.zeros((3, 1))
         self.desired_yaw = 0.0
         self.desired_d_yaw = 0.0
         self.desired_dd_yaw = 0.0
@@ -85,16 +92,27 @@ class Quadrotor(object):
         self.e_omegas = np.zeros((3, 1))
         self.e_R_ = np.zeros((3, 1))
 
+        # self.gloabal_time = rospy.Time.now()
         # subscribers from ROS
         # odom
 
+        topic_payload_odom = '/payload/ground_truth/odometry'
+        self.sub_payload_odom = rospy.Subscriber(topic_payload_odom, Odometry, self.callback_p_odom)
+        self.payload_position = np.zeros((3, 1))
+        self.payload_velocity = np.zeros((3, 1))
+
         topic_name_odom = '/' + self.name + '/ground_truth/odometry'
-        print topic_name_odom
         self.sub_quad0_odometry = rospy.Subscriber(topic_name_odom, Odometry, self.cb_quad_odom)
+
+        topic_name_odom_gym = '/' + self.name + '/ground_truth_gym/odometry'
+        self.pub_quad0_odometry_gym = rospy.Publisher(topic_name_odom_gym, Odometry, queue_size=1)
 
         # imu
         topic_name_imu = '/' + self.name + '/ground_truth/imu'
         self.sub_quad0_imu = rospy.Subscriber(topic_name_imu, Imu, self.cb_quad_imu)
+
+        topic_name_imu_gym = '/' + self.name + '/ground_truth_gym/imu'
+        self.pub_quad0_imu_gym = rospy.Publisher(topic_name_imu_gym, Imu, queue_size=1)
 
         # publisher of commands and errs
         topic_name_err_pos = '/' + self.name + '/controller/pos_err'
@@ -110,22 +128,29 @@ class Quadrotor(object):
         topic_name_jerk_des = '/' + self.name + '/commander/ref_j'
         topic_name_snap_des = '/' + self.name + '/commander/ref_snap'
         topic_name_actuators = '/' + self.name + '/gazebo/command/motor_speed'
+        
 
-        self.publisher_err_pos = rospy.Publisher(topic_name_err_pos, Vector3Stamped, queue_size=2)
+        # payload desired_trj
+        topic_name_ref_pos_payload = '/payload/ref_pos'
+        topic_name_ref_vel_payload = '/payload/ref_vel'
+        self.pub_payload_desired_pos = rospy.Publisher(topic_name_ref_pos_payload, Vector3Stamped, queue_size=1)
+        self.pub_payload_desired_vel = rospy.Publisher(topic_name_ref_vel_payload, Vector3Stamped, queue_size=1)
 
-        self.publisher_err_vel = rospy.Publisher(topic_name_err_vel, Vector3Stamped, queue_size=2)
-        # self.publisher_err_angles = rospy.Publisher(topic_name_err_angles, Vector3Stamped, queue_size=2)
-        self.publisher_err_omegas = rospy.Publisher(topic_name_err_omegas, Vector3Stamped, queue_size=2)
-        self.publisher_err_R = rospy.Publisher(topic_name_err_R, Vector3Stamped, queue_size=2)
-        self.publisher_euler_des = rospy.Publisher(topic_name_euler_des, Vector3Stamped, queue_size=10)
-        self.publisher_eulers = rospy.Publisher(topic_name_eulers, Vector3Stamped, queue_size=2)
-        self.pub_desired_pos = rospy.Publisher(topic_name_pos_des, Vector3Stamped, queue_size=2)
-        self.pub_desired_vel = rospy.Publisher(topic_name_vel_des, Vector3Stamped, queue_size=2)
-        self.pub_desired_acc = rospy.Publisher(topic_name_acc_des, Vector3Stamped, queue_size=2)
-        self.pub_desired_jerk = rospy.Publisher(topic_name_jerk_des, Vector3Stamped, queue_size=2)
-        self.pub_desired_snap = rospy.Publisher(topic_name_snap_des, Vector3Stamped, queue_size=2)
 
-        self.pub_actuator = rospy.Publisher(topic_name_actuators, Actuators, queue_size=2)
+        self.publisher_err_pos = rospy.Publisher(topic_name_err_pos, Vector3Stamped, queue_size=1)
+        self.publisher_err_vel = rospy.Publisher(topic_name_err_vel, Vector3Stamped, queue_size=1)
+        # self.publisher_err_angles = rospy.Publisher(topic_name_err_angles, Vector3Stamped, queue_size=10)
+        self.publisher_err_omegas = rospy.Publisher(topic_name_err_omegas, Vector3Stamped, queue_size=1)
+        self.publisher_err_R = rospy.Publisher(topic_name_err_R, Vector3Stamped, queue_size=1)
+        self.publisher_euler_des = rospy.Publisher(topic_name_euler_des, Vector3Stamped, queue_size=1)
+        self.publisher_eulers = rospy.Publisher(topic_name_eulers, Vector3Stamped, queue_size=1)
+        self.pub_desired_pos = rospy.Publisher(topic_name_pos_des, Vector3Stamped, queue_size=1)
+        self.pub_desired_vel = rospy.Publisher(topic_name_vel_des, Vector3Stamped, queue_size=1)
+        self.pub_desired_acc = rospy.Publisher(topic_name_acc_des, Vector3Stamped, queue_size=1)
+        self.pub_desired_jerk = rospy.Publisher(topic_name_jerk_des, Vector3Stamped, queue_size=1)
+        self.pub_desired_snap = rospy.Publisher(topic_name_snap_des, Vector3Stamped, queue_size=1)
+        
+        self.pub_actuator = rospy.Publisher(topic_name_actuators, Actuators, queue_size=1)
 
         # subscribers from the planner side
         # self.sub_poly_trj = rospy.Subscriber('trajectory', PolynomialTrajectory4D, self.cb_trajectory)
@@ -157,18 +182,20 @@ class Quadrotor(object):
 
         # publisher for debug:
         topic_name_motor_speed_des = '/' + self.name + '/motor_speed0_des'
-        topic_name_u1_des = '/' + self.name + '/u1_des'
-        topic_name_u2_des = '/' + self.name + '/u2_des'
-        topic_name_u3_des = '/' + self.name + '/u3_des'
+        # topic_name_u1_des = '/' + self.name + '/u1_des'
+        # topic_name_u2_des = '/' + self.name + '/u2_des'
+        # topic_name_u3_des = '/' + self.name + '/u3_des'
         topic_name_omega_des = '/' + self.name + '/des_omega'
         topic_name_actual_acc = '/' + self.name + '/controller/actual_acc'
 
-        self.pub_motor_speed_des = rospy.Publisher(topic_name_motor_speed_des, Float64, queue_size=2)
-        self.pub_desired_u1 = rospy.Publisher(topic_name_u1_des, Float64, queue_size=2)
-        self.pub_desired_u2 = rospy.Publisher(topic_name_u2_des, Float64, queue_size=2)
-        self.pub_desired_u3 = rospy.Publisher(topic_name_u3_des, Float64, queue_size=2)
-        self.pub_desired_omegas = rospy.Publisher(topic_name_omega_des, Vector3Stamped, queue_size=2)
-        self.pub_actual_acc = rospy.Publisher(topic_name_actual_acc, Vector3Stamped, queue_size=2)
+
+        self.pub_motor_speed_des = rospy.Publisher(topic_name_motor_speed_des, Float64, queue_size=1)
+        # self.pub_desired_u1 = rospy.Publisher(topic_name_u1_des, Float64, queue_size=1)
+        # self.pub_desired_u2 = rospy.Publisher(topic_name_u2_des, Float64, queue_size=1)
+        # self.pub_desired_u3 = rospy.Publisher(topic_name_u3_des, Float64, queue_size=1)
+        self.pub_desired_omegas = rospy.Publisher(topic_name_omega_des, Vector3Stamped, queue_size=1)
+        self.pub_actual_acc = rospy.Publisher(topic_name_actual_acc, Vector3Stamped, queue_size=1)
+
 
         # commander of motor speed
         self.motor_speed = np.zeros((4, 1))
@@ -180,6 +207,21 @@ class Quadrotor(object):
         self.initial_time = None
         self.t = None
 
+        self.odom_gym = None
+        self.imu_gym = None
+
+        # print "topic to wait: ", topic_name_odom
+        # odom = rospy.wait_for_message(topic_name_odom, Odometry)
+        # print "topic to wait: ", topic_name_imu
+        # imu = rospy.wait_for_message(topic_name_imu, Imu)
+
+        # self.check_publishers_connection()
+
+    def callback_p_odom(self, data):
+        self.payload_position = np.array([[data.pose.pose.position.x], [data.pose.pose.position.y], [data.pose.pose.position.z]])
+        self.payload_velocity = np.array([[data.twist.twist.linear.x], [data.twist.twist.linear.y], [data.twist.twist.linear.z]])
+
+
     def set_initial_pos(self, x, y, z):
         self.inital_position = np.array(
             [
@@ -189,13 +231,15 @@ class Quadrotor(object):
         self.desired_positions[2, 0] = z
 
     def pre_processing(self):
-        with open('/home/lucasyu/gazebo_learning_ws/src/collaborative_transportation'
-                  '/rotors_gazebo/scripts/collaborative/config/parameters.yaml', 'r') as stream:
+        current_directory = os.path.dirname(__file__)
+        # parent_directory = os.path.split(current_directory)[0]
+        file_path = os.path.join(current_directory, 'config', 'parameters.yaml')
+        with open(file_path, 'r') as stream:
             try:
                 yaml_data = yaml.safe_load(stream)
                 self.L = yaml_data['quad']['rotor']['length']
                 mass_rotor = yaml_data['quad']['rotor']['mass']
-                self.mass = yaml_data['quad']['base']['mass'] + 4 * mass_rotor
+                self.mass = yaml_data['quad']['base']['mass'] + 4 * mass_rotor + 3 * 0.025 #mass spherical joints
                 J_base = inertial_dict2matrix(yaml_data['quad']['base']['inertia'])
 
                 box_rotor = yaml_data['quad']['rotor']['box']
@@ -221,6 +265,7 @@ class Quadrotor(object):
                          -yaml_data['quad']['rotor3']['origin']['y'],
                          -yaml_data['quad']['rotor3']['origin']['z']], J_rotor_G, mass_rotor)
                 ]
+                self.payload_center[2, 0] = yaml_data['payload']['base']['box']['z'] / 2.0
                 self.J = J_base
                 for i in range(4):
                     self.J = self.J + J_rotors_O[i]
@@ -228,22 +273,60 @@ class Quadrotor(object):
                 print(exc)
 
     def cb_quad_odom(self, data):
+        #print "callback inside!!!"
+        if data.twist.twist.linear.x != data.twist.twist.linear.x:
+            print "aaaaaaaaaaaaaaaaaaaaaaaaaaa nan velocities!"
+            return
 
-        self.euler_quads = np.array(quaternion2euler(data)).reshape((3, 1))
+        self.euler_quads = np.array(quaternion2euler([data.pose.pose.orientation.x,
+                                                     data.pose.pose.orientation.y,
+                                                     data.pose.pose.orientation.z,
+                                                     data.pose.pose.orientation.w])).reshape((3, 1))
 
         self.R_ = rotation_matrix_from_quaternion([data.pose.pose.orientation.x, data.pose.pose.orientation.y,
                                data.pose.pose.orientation.z, data.pose.pose.orientation.w])
 
+        # print "self.positions_quads: ", self.positions_quads
         self.positions_quads = np.array([[data.pose.pose.position.x], [data.pose.pose.position.y],
                                          [data.pose.pose.position.z]])
 
         self.acc_calculated = (np.array([[data.twist.twist.linear.x], [data.twist.twist.linear.y],
                                          [data.twist.twist.linear.z]]) - self.velocities_quads) / self.dt
 
-        self.velocities_quads = np.array([[data.twist.twist.linear.x], [data.twist.twist.linear.y],
-                                          [data.twist.twist.linear.z]])
+        # print "data.twist.twist.linear.x: ", data.twist.twist.linear.x
+
+        # print "self.velocities_quads inside msg: ", self.velocities_quads
         self.angular_vel_quads = np.array([[data.twist.twist.angular.x], [data.twist.twist.angular.y],
                                            [data.twist.twist.angular.z]])
+        
+        self.velocities_quads = np.array([[data.twist.twist.linear.x], [data.twist.twist.linear.y],
+                                          [data.twist.twist.linear.z]])
+
+        self.update_pos_err()
+        self.update_vel_err()
+
+        self.odom_gym = copy.copy(data)
+        self.publish_gym_odom()
+        # time_now = data.header.stamp
+        # duration = (time_now - self.gloabal_time).to_sec()
+        # print "duration velocities: ", duration
+        # self.gloabal_time = time_now
+        # self.x_B = self.R_[:, 0].reshape((1, 3))
+        # self.y_B = self.R_[:, 1].reshape((1, 3))
+        # self.z_B = self.R_[:, 2].reshape((1, 3))
+
+
+    def publish_gym_odom(self):
+        if not self.odom_gym is None:
+            self.pub_quad0_odometry_gym.publish(self.odom_gym)
+        else:
+            print "gym odom state is None!!"
+
+    def publish_gym_imu(self):
+        if not self.imu_gym is None:
+            self.pub_quad0_imu_gym.publish(self.imu_gym)
+        else:
+            print "gym imu state is None!!"
 
     def cb_quad_imu(self, data):
         self.acc = np.array([
@@ -252,7 +335,25 @@ class Quadrotor(object):
             [-data.linear_acceleration.z + self.g]
         ])
 
+        self.imu_gym = copy.copy(data)
+        self.publish_gym_imu()
+        
+
     # publish
+    def publish_desired_payload_pos(self):
+        pub_vec3 = Vector3Stamped()
+        pub_vec3.header.stamp = rospy.Time.now()
+        pub_vec3.vector = Vector3(self.des_payload_position[0, 0], self.des_payload_position[1, 0], \
+                                  self.des_payload_position[2, 0])
+        self.pub_payload_desired_pos.publish(pub_vec3)
+
+    def publish_desired_payload_vel(self):
+        pub_vec3 = Vector3Stamped()
+        pub_vec3.header.stamp = rospy.Time.now()
+        pub_vec3.vector = Vector3(self.des_payload_velocity[0, 0], self.des_payload_velocity[1, 0], \
+                                  self.des_payload_velocity[2, 0])
+        self.pub_payload_desired_vel.publish(pub_vec3)
+
     def publish_desired_pos(self):
         pub_vec3 = Vector3Stamped()
         pub_vec3.header.stamp = rospy.Time.now()
@@ -291,9 +392,13 @@ class Quadrotor(object):
     def publish_desired_trj(self):
         self.publish_desired_pos()
         self.publish_desired_vel()
-        self.publish_desired_acc()
-        self.publish_desired_jerk()
-        self.publish_desired_snap()
+        self.publish_desired_payload_pos()
+        self.publish_desired_payload_vel()
+        # self.publish_desired_acc()
+        # self.publish_desired_jerk()
+        # self.publish_desired_snap()
+
+        # self.publish_gym_states()
 
     def publish_err(self):
         pub_vec3 = Vector3Stamped()
@@ -307,6 +412,8 @@ class Quadrotor(object):
 
         pub_vec3.vector = Vector3(self.e_omegas[0, 0], self.e_omegas[1, 0], self.e_omegas[2, 0])
         self.publisher_err_omegas.publish(pub_vec3)
+        del pub_vec3
+
 
     # updates
     def update_omega_err(self):
@@ -331,41 +438,65 @@ class Quadrotor(object):
         self.update_R_err()
         self.u[1:4] = - np.multiply(self.K_R, self.e_R_) - np.multiply(self.K_omega, self.e_omegas)
 
-    def get_desired_trj_from_poly(self):
-        return
+    # def get_desired_trj_from_poly(self):
+    #     return
 
-    def set_desried_trj(self):
-        return
+    # def set_desried_trj(self):
+    #     return
 
-    def update_current_state(self):
-        return
+    # def update_current_state(self):
+    #     return
 
     def update_desired_F(self):
-        self.update_pos_err()
-        self.update_vel_err()
+        # self.update_pos_err()
+        # self.update_vel_err()
 
         self.desired_F = -(np.dot(self.K_p, self.e_positions) + np.multiply(self.k_pI, self.e_p_integral)) - \
                          (np.dot(self.K_v, self.e_velocities)) + np.array(
             [[0.0], [0.0], [self.mass * self.g]]) + \
                          np.multiply(self.mass, self.desired_acceleratons)
-        print ("desired F: ", self.desired_F[0, 0], self.desired_F[1, 0], self.desired_F[2, 0])
+        print "desired F: ", self.desired_F[0, 0], self.desired_F[1, 0], self.desired_F[2, 0]
 
-    def update_desired_values(self):
-        return
+    # def update_desired_values(self):
+    #     return
+
+    def offset_thrust(self, delta_f):
+        self.u[0] = self.u[0] + delta_f
 
     def motorSpeedFromU(self):
         self.motor_speed = np.dot(self.M_UtoMotor, self.u)
-        print ("motor speed: ", self.motor_speed[0, 0], self.motor_speed[1, 0], self.motor_speed[2, 0], \
-        self.motor_speed[3, 0])
+        # print ("motor speeds: ", self.motor_speed[0, 0], self.motor_speed[1, 0], self.motor_speed[2, 0], \
+        # self.motor_speed[3, 0])
+
+    def set_desired_motor_speed(self, motor_speed):
+        self.motor_speed = motor_speed
 
     def send_motor_command(self):
         actuator = Actuators()
         actuator.header.stamp = rospy.Time.now()
+        # print ("motor_speed: ", self.motor_speed)
         actuator.angular_velocities = self.motor_speed
         self.pub_actuator.publish(actuator)
         float64 = Float64()
-        float64.data = self.motor_speed[0, 0]
+        float64.data = self.motor_speed[0, 0]/1000.0
         self.pub_motor_speed_des.publish(float64)
+
+    def check_publishers_connection(self):
+        """
+        Checks that all the publishers are working
+        :return:
+        """
+        rate = rospy.Rate(10)  # 10hz
+        while (self.pub_actuator.get_num_connections() == 0 and not rospy.is_shutdown()):
+            rospy.loginfo("No susbribers to _roll_vel_pub yet so we wait and try again")
+            try:
+                rate.sleep()
+            except rospy.ROSInterruptException:
+                # This is to avoid error when world is rested, time when backwards.
+                pass
+        rospy.loginfo("_base_pub Publisher Connected")
+
+        rospy.loginfo("All Publishers READY")
 
     def run(self):
         return
