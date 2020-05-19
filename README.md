@@ -108,7 +108,7 @@ The agents are identified by their unique namespace of their ROS message topics.
 For the generation of polynomial trajectories, key frame vertices have to be given to the planner, including their positions and other constraints on higher order derivatives. The details can be seen in the [example python script](https://github.com/lucasyu17/collaborative_rotorS/blob/master/rotors_gazebo/scripts/collaborative/polynomialTrjNonlinear/Optimizer_nonlinear.py "example python script"). 
 
 Here is an example of a minimum snap polynomial trajectory generation result:
-![collaborative transportation](https://raw.githubusercontent.com/lucasyu17/collaborative_rotorS/master/rotors_gazebo/images/trajectory_result.png "trajectory_generation_example")
+![image](https://github.com/intelligent-control-lab/Collaborative_Aerial_Transportation/blob/master/rotors_gazebo/images/minimum_snap.png "trajectory_generation_example")
 
 ## License
 The MIT License (MIT)
